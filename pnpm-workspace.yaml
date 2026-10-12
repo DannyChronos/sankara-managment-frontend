@@ -1,0 +1,5 @@
+# Scripts d'installation autorisés (pnpm >= 11).
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': false
+  unrs-resolver: true

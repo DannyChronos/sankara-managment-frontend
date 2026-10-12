@@ -1,0 +1,33 @@
+/* Couleurs du logo officiel — voir src/app/theme.ts. */
+:root {
+  --sankara-navy: #0e2e4e;
+  --sankara-blue: #6e9ace;
+  --sankara-blue-deep: #2c5b92;
+  --sankara-star: #f9d86c;
+  --sankara-success: #2e9e5b;
+  --sankara-danger: #cf2e2e;
+  --sankara-surface: #f4f7fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--sankara-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tickets 80 mm : seul le contenu imprimable sort sur l'imprimante thermique. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
