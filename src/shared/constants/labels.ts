@@ -27,6 +27,7 @@ export const cashSessionStatusColor: Record<CashSessionStatus, string> = {
 };
 
 export const roleLabel: Record<RoleCode, string> = {
+  MAINTAINER: 'Mainteneur',
   SUPER_ADMIN: 'Super administrateur',
   ADMIN: 'Administrateur',
   ACCOUNTANT: 'Comptable',
@@ -36,6 +37,7 @@ export const roleLabel: Record<RoleCode, string> = {
 
 /** Page d'accueil par rôle (FRONTEND.md §1). */
 export const roleHomePath: Record<RoleCode, string> = {
+  MAINTAINER: '/dashboard',
   SUPER_ADMIN: '/dashboard',
   ADMIN: '/dashboard',
   ACCOUNTANT: '/cash-sessions/to-verify',

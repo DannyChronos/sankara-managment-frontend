@@ -46,24 +46,32 @@ export type CashSessionStatus =
   'OPEN' | 'CLOSED' | 'CONFORM' | 'NON_CONFORM' | 'REGULARIZED';
 
 export type RoleCode =
-  'SUPER_ADMIN' | 'ADMIN' | 'ACCOUNTANT' | 'STOREKEEPER' | 'CASHIER';
+  | 'MAINTAINER'
+  | 'SUPER_ADMIN'
+  | 'ADMIN'
+  | 'ACCOUNTANT'
+  | 'STOREKEEPER'
+  | 'CASHIER';
 
 export interface SiteSummary {
   id: string;
   code: string;
   name: string;
   canSell: boolean;
-  canStock: boolean;
+  isDefault: boolean;
 }
 
 export interface CurrentUser {
   id: string;
   fullName: string;
   email: string | null;
-  phone: string | null;
+  phone: string;
   roleCode: RoleCode;
+  roleName: string;
   permissions: string[];
   sites: SiteSummary[];
+  /** null = plafond par défaut défini dans les paramètres. */
+  discountCapPercent: number | null;
 }
 
 export interface LoginPayload {
