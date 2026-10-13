@@ -359,7 +359,63 @@ export const router = createBrowserRouter([
           };
         },
       },
-      // ...orderRoutes, ...adminRoutes
+      {
+        path: 'users',
+        lazy: async () => {
+          const { UsersPage } =
+            await import('../features/users/pages/UsersPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="users:read">
+                <UsersPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'rbac/roles',
+        lazy: async () => {
+          const { RolesPage } =
+            await import('../features/rbac/pages/RolesPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="rbac:read">
+                <RolesPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'sites',
+        lazy: async () => {
+          const { SitesPage } =
+            await import('../features/sites/pages/SitesPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="sites:read">
+                <SitesPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'settings',
+        lazy: async () => {
+          const { SettingsPage } =
+            await import('../features/settings/pages/SettingsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="settings:manage">
+                <SettingsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      // ...orderRoutes
     ],
   },
   {

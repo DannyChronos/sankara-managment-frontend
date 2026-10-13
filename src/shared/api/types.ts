@@ -523,3 +523,44 @@ export interface UserSummary {
   lastLoginAt: string | null;
   createdAt: string;
 }
+
+export type UserStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED';
+
+/** Renvoyé une seule fois, à la création, si le mot de passe a été généré. */
+export interface CreatedUser extends UserSummary {
+  temporaryPassword?: string;
+}
+
+export interface Role {
+  id: string;
+  code: string;
+  name: string;
+  /** Rôle livré avec la plateforme : ni renommable, ni supprimable. */
+  isSystem: boolean;
+  userCount: number;
+  permissions: string[];
+}
+
+export interface PermissionModule {
+  id: string;
+  code: string;
+  name: string;
+  permissions: { id: string; code: string; label: string }[];
+}
+
+export type SiteType = 'WAREHOUSE' | 'SHOP' | 'MIXED';
+
+export interface SiteDetail {
+  id: string;
+  code: string;
+  name: string;
+  type: SiteType;
+  address: string | null;
+  phone: string | null;
+  canSell: boolean;
+  isEcommerceSource: boolean;
+  isActive: boolean;
+  managerId: string | null;
+  userCount: number;
+  createdAt: string;
+}

@@ -179,12 +179,6 @@ export const navigation: NavSection[] = [
         perm: 'settings:manage',
       },
       {
-        key: 'integrations',
-        label: 'Intégrations',
-        path: '/integrations',
-        perm: 'integrations:manage',
-      },
-      {
         key: 'audit',
         label: "Journal d'audit",
         path: '/audit',
