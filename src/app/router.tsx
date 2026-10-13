@@ -415,6 +415,14 @@ export const router = createBrowserRouter([
           };
         },
       },
+      {
+        path: 'notifications',
+        lazy: async () => {
+          const { NotificationsPage } =
+            await import('../features/notifications/pages/NotificationsPage');
+          return { Component: NotificationsPage };
+        },
+      },
       // ...orderRoutes
     ],
   },

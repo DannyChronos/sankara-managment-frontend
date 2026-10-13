@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Avatar, Dropdown, Flex, Layout, Menu, Typography } from 'antd';
-import { BellOutlined, LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { navigation } from './navigation';
 import { SiteSelect } from './SiteSelect';
 import { OfflineBanner } from '../shared/components';
+import { NotificationBell } from '../features/notifications/components/NotificationBell';
 import { useAuth } from '../shared/auth/useAuth';
 import { usePermission } from '../shared/auth/usePermission';
 import { useLogout } from '../features/auth/hooks';
@@ -93,7 +94,7 @@ export function AppLayout() {
         >
           <SiteSelect />
           <Flex align="center" gap={16}>
-            <BellOutlined style={{ fontSize: 18 }} aria-label="Notifications" />
+            <NotificationBell />
             <Dropdown
               menu={{
                 items: [

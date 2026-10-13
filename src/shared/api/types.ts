@@ -564,3 +564,20 @@ export interface SiteDetail {
   userCount: number;
   createdAt: string;
 }
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  /** Cible applicative, telle que le backend l'a écrite (`/transfers/:id`…). */
+  link: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+/** La liste porte le compteur de non lues : c'est lui qui alimente la cloche. */
+export interface NotificationPage {
+  data: Notification[];
+  meta: PageMeta & { unread: number };
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -24,6 +24,10 @@ import type { StockLevelView } from '../../../shared/api/types';
 /** État du stock du site courant : physique, réservé, disponible (F-17). */
 export function StockLevelsPage() {
   const { siteId, currentSite } = useAuth();
+  // Une alerte « stock bas » pointe ici avec la variante concernée : on
+  // ouvre directement sur elle plutôt que sur tout le stock du site.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const variantId = searchParams.get('variantId');
   const [q, setQ] = useState('');
   const [lowOnly, setLowOnly] = useState(false);
   const [page, setPage] = useState(1);
@@ -35,6 +39,7 @@ export function StockLevelsPage() {
     page,
     limit: 20,
     ...(siteId ? { siteId } : {}),
+    ...(variantId ? { variantId } : {}),
     ...(q.trim().length >= 2 ? { q: q.trim() } : {}),
     ...(lowOnly ? { lowOnly: true } : {}),
   });
@@ -61,7 +66,16 @@ export function StockLevelsPage() {
       />
 
       <Card>
-        <Flex gap={12} wrap style={{ marginBottom: 16 }}>
+        <Flex gap={12} wrap align="center" style={{ marginBottom: 16 }}>
+          {variantId && (
+            <Tag
+              color="geekblue"
+              closable
+              onClose={() => setSearchParams({}, { replace: true })}
+            >
+              un seul article
+            </Tag>
+          )}
           <Input.Search
             allowClear
             placeholder="SKU, variante ou produit"
