@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { VariantSearchResult } from '../../../shared/api/types';
+import type { Order, VariantSearchResult } from '../../../shared/api/types';
 
 export interface CartLine {
   variantId: string;
@@ -19,12 +19,19 @@ interface CartState {
   customerLabel: string | null;
   /** Générée une fois par tentative de vente, réutilisée en cas de relance. */
   idempotencyKey: string | null;
+  /**
+   * Dernière vente encaissée. Elle survit au vidage du panier et à un
+   * rechargement : au comptoir, le ticket se réimprime après coup — bourrage
+   * papier, ou client qui revient deux minutes plus tard.
+   */
+  lastSale: Order | null;
 
   add: (variant: VariantSearchResult) => void;
   setQuantity: (variantId: string, quantity: number) => void;
   setDiscount: (variantId: string, discount: number) => void;
   remove: (variantId: string) => void;
   setCustomer: (id: string | null, label: string | null) => void;
+  setLastSale: (order: Order | null) => void;
   startAttempt: () => string;
   clear: () => void;
 }
@@ -41,6 +48,7 @@ export const useCartStore = create<CartState>()(
       customerId: null,
       customerLabel: null,
       idempotencyKey: null,
+      lastSale: null,
 
       add: (variant) =>
         set((state) => {
@@ -107,6 +115,8 @@ export const useCartStore = create<CartState>()(
       setCustomer: (customerId, customerLabel) =>
         set({ customerId, customerLabel, idempotencyKey: null }),
 
+      setLastSale: (lastSale) => set({ lastSale }),
+
       /**
        * Une clé par tentative : si le réseau coupe, la relance réutilise la
        * même et la vente n'est jamais comptée deux fois (FRONTEND.md §5.3).
@@ -120,6 +130,7 @@ export const useCartStore = create<CartState>()(
         return key;
       },
 
+      // Appelé juste après une vente : le ticket, lui, reste accessible.
       clear: () =>
         set({
           lines: [],

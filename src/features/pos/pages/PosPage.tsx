@@ -7,7 +7,7 @@ import { errorMessage, toApiError } from '../../../shared/api/errors';
 import { useAuth } from '../../../shared/auth/useAuth';
 import { useBarcodeScanner } from '../../../shared/hooks/useBarcodeScanner';
 import { useCurrentSession } from '../../cash-sessions/hooks';
-import type { Customer, Order, SalePayment } from '../../../shared/api/types';
+import type { Customer, SalePayment } from '../../../shared/api/types';
 import { posApi } from '../api';
 import { useCreateSale, useVariantSearch } from '../hooks';
 import {
@@ -31,10 +31,13 @@ export function PosPage() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [customerOpen, setCustomerOpen] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
-  const [lastSale, setLastSale] = useState<Order | null>(null);
+  // Le ticket se rouvre après coup : la dernière vente vit dans le panier
+  // persistant, elle survit donc aussi à un rechargement.
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const searchRef = useRef<InputRef>(null);
 
   const cart = useCartStore();
+  const lastSale = cart.lastSale;
   const search = useVariantSearch(term);
   const createSale = useCreateSale();
 
@@ -140,7 +143,8 @@ export function PosPage() {
         onSuccess: (order) => {
           setPaymentOpen(false);
           setFailure(null);
-          setLastSale(order);
+          cart.setLastSale(order);
+          setReceiptOpen(true);
           cart.clear();
           setTerm('');
           searchRef.current?.focus();
@@ -166,6 +170,8 @@ export function PosPage() {
         cashier={user?.fullName}
         site={currentSite?.name}
         sessionNumber={session.data.number}
+        lastSaleNumber={lastSale?.number}
+        onReopenReceipt={() => setReceiptOpen(true)}
       />
 
       <Flex style={{ flex: 1, minHeight: 0 }}>
@@ -236,8 +242,8 @@ export function PosPage() {
       />
 
       <Modal
-        open={Boolean(lastSale)}
-        onCancel={() => setLastSale(null)}
+        open={receiptOpen && Boolean(lastSale)}
+        onCancel={() => setReceiptOpen(false)}
         title={`Vente ${lastSale?.number ?? ''}`}
         footer={
           <Flex gap={8} justify="end">
@@ -248,7 +254,7 @@ export function PosPage() {
             >
               Imprimer le ticket
             </PdfButton>
-            <Button type="primary" onClick={() => setLastSale(null)}>
+            <Button type="primary" onClick={() => setReceiptOpen(false)}>
               Vente suivante
             </Button>
           </Flex>
@@ -277,10 +283,14 @@ function PosHeader({
   cashier,
   site,
   sessionNumber,
+  lastSaleNumber,
+  onReopenReceipt,
 }: {
   cashier?: string;
   site?: string;
   sessionNumber?: string;
+  lastSaleNumber?: string;
+  onReopenReceipt?: () => void;
 }) {
   return (
     <Flex
@@ -298,6 +308,11 @@ function PosHeader({
         {sessionNumber ? ` · ${sessionNumber}` : ''} · {cashier ?? ''}
       </Typography.Text>
       <Flex gap={8}>
+        {lastSaleNumber && (
+          <Button size="small" onClick={onReopenReceipt}>
+            Dernier ticket · {lastSaleNumber}
+          </Button>
+        )}
         <Link to="/cash-sessions/me">
           <Button size="small">Ma caisse</Button>
         </Link>
