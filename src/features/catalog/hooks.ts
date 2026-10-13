@@ -1,13 +1,127 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import { errorMessage } from '../../shared/api/errors';
-import { catalogApi } from './api';
+import {
+  catalogApi,
+  type CategoryPayload,
+  type GenerateVariantsPayload,
+  type ProductPayload,
+  type VariantPayload,
+} from './api';
 
-export function useCategories(tree = false) {
+export function useCategories(params: Record<string, unknown> = {}) {
   return useQuery({
-    queryKey: ['catalog', 'categories', tree],
-    queryFn: () => catalogApi.categories(tree),
+    queryKey: ['catalog', 'categories', params],
+    queryFn: () => catalogApi.categories(params),
     staleTime: 5 * 60_000,
+  });
+}
+
+/** Une modification du catalogue change ce que la caisse propose. */
+function invalidateCatalog(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: ['catalog'] });
+}
+
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (payload: CategoryPayload) =>
+      catalogApi.createCategory(payload),
+    onSuccess: (category) => {
+      invalidateCatalog(queryClient);
+      message.success(`Catégorie ${category.name} créée.`);
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: CategoryPayload }) =>
+      catalogApi.updateCategory(id, payload),
+    onSuccess: () => {
+      invalidateCatalog(queryClient);
+      message.success('Catégorie mise à jour.');
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+export function useCreateProduct() {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (payload: ProductPayload) => catalogApi.createProduct(payload),
+    onSuccess: (product) => {
+      invalidateCatalog(queryClient);
+      message.success(
+        `${product.name} créé. Ajoutez-lui des variantes pour le vendre.`,
+      );
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+export function useUpdateProduct() {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: Partial<ProductPayload>;
+    }) => catalogApi.updateProduct(id, payload),
+    onSuccess: () => {
+      invalidateCatalog(queryClient);
+      message.success('Produit mis à jour.');
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+export function useCreateVariant(productId: string) {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (payload: VariantPayload) =>
+      catalogApi.createVariant(productId, payload),
+    onSuccess: (variant) => {
+      invalidateCatalog(queryClient);
+      message.success(`Variante ${variant.sku} ajoutée.`);
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+/** Dimensions × épaisseurs : la façon dont un matelas se décline vraiment. */
+export function useGenerateVariants(productId: string) {
+  const queryClient = useQueryClient();
+  const { message, notification } = App.useApp();
+
+  return useMutation({
+    mutationFn: (payload: GenerateVariantsPayload) =>
+      catalogApi.generateVariants(productId, payload),
+    onSuccess: ({ created, skipped }) => {
+      invalidateCatalog(queryClient);
+      notification.success({
+        message: `${created.length} variante(s) créée(s)`,
+        description: skipped
+          ? `${skipped} combinaison(s) existaient déjà et ont été ignorées.`
+          : 'Toutes les combinaisons demandées ont été créées.',
+        duration: 6,
+      });
+    },
+    onError: (error) => message.error(errorMessage(error)),
   });
 }
 

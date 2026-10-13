@@ -1,27 +1,45 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, Descriptions, Empty, Image, Table, Tabs, Tag } from 'antd';
+import {
+  Alert,
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  Image,
+  Table,
+  Tabs,
+  Tag,
+} from 'antd';
 import {
   ErrorState,
   PageHeader,
   PageSkeleton,
+  PermissionGate,
 } from '../../../shared/components';
-import { useProduct, useVariantStock } from '../hooks';
+import {
+  useCreateVariant,
+  useGenerateVariants,
+  useProduct,
+  useUpdateProduct,
+  useVariantStock,
+} from '../hooks';
+import { FIRMNESS_LABEL } from '../labels';
+import { ProductForm } from '../components/ProductForm';
+import { VariantModal } from '../components/VariantModal';
 import { PriceEditor } from '../components/PriceEditor';
 import type { ProductVariantView } from '../../../shared/api/types';
-
-const FIRMNESS_LABEL: Record<string, string> = {
-  SOFT: 'Souple',
-  MEDIUM: 'Moyen',
-  FIRM: 'Ferme',
-  EXTRA_FIRM: 'Très ferme',
-};
 
 export function ProductDetailPage() {
   const { id = '' } = useParams();
   const { data: product, isPending, isError, error, refetch } = useProduct(id);
   const [stockVariantId, setStockVariantId] = useState<string | undefined>();
   const stock = useVariantStock(stockVariantId);
+  const [editOpen, setEditOpen] = useState(false);
+  const [variantOpen, setVariantOpen] = useState(false);
+  const update = useUpdateProduct();
+  const createVariant = useCreateVariant(id);
+  const generateVariants = useGenerateVariants(id);
 
   if (isPending) return <PageSkeleton />;
   if (isError)
@@ -43,9 +61,25 @@ export function ProductDetailPage() {
             {product.isPublishedOnline && (
               <Tag color="blue">publié en ligne</Tag>
             )}
+            <PermissionGate perm="catalog:manage">
+              <Button onClick={() => setEditOpen(true)}>Modifier</Button>
+              <Button type="primary" onClick={() => setVariantOpen(true)}>
+                Ajouter des variantes
+              </Button>
+            </PermissionGate>
           </>
         }
       />
+
+      {product.variants.length === 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Ce produit n’a aucune variante"
+          description="Il n’apparaîtra pas en caisse : ce sont les variantes qui portent le SKU, le prix et le stock."
+        />
+      )}
 
       <Tabs
         items={[
@@ -235,6 +269,39 @@ export function ProductDetailPage() {
           },
         ]}
       />
+
+      {editOpen && (
+        <ProductForm
+          product={product}
+          open
+          pending={update.isPending}
+          onCancel={() => setEditOpen(false)}
+          onSubmit={(payload) =>
+            update.mutate(
+              { id, payload },
+              { onSuccess: () => setEditOpen(false) },
+            )
+          }
+        />
+      )}
+
+      {variantOpen && (
+        <VariantModal
+          open
+          pending={createVariant.isPending || generateVariants.isPending}
+          onCancel={() => setVariantOpen(false)}
+          onCreateOne={(payload) =>
+            createVariant.mutate(payload, {
+              onSuccess: () => setVariantOpen(false),
+            })
+          }
+          onGenerate={(payload) =>
+            generateVariants.mutate(payload, {
+              onSuccess: () => setVariantOpen(false),
+            })
+          }
+        />
+      )}
     </>
   );
 }

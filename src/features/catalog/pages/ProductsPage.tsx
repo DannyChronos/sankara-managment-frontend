@@ -1,18 +1,27 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, Flex, Input, Select, Switch, Table, Tag } from 'antd';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Button, Card, Flex, Input, Select, Switch, Table, Tag } from 'antd';
 import {
   ErrorState,
   Money,
   PageHeader,
   PageSkeleton,
+  PermissionGate,
 } from '../../../shared/components';
-import { useCategories, useProducts } from '../hooks';
+import { useCategories, useCreateProduct, useProducts } from '../hooks';
+import { ProductForm } from '../components/ProductForm';
 import type { ProductListItem } from '../../../shared/api/types';
 
 export function ProductsPage() {
+  const navigate = useNavigate();
+  // Une catégorie peut pointer ici avec son filtre déjà posé.
+  const [searchParams] = useSearchParams();
   const [q, setQ] = useState('');
-  const [categoryId, setCategoryId] = useState<string | undefined>();
+  const [categoryId, setCategoryId] = useState<string | undefined>(
+    searchParams.get('categoryId') ?? undefined,
+  );
+  const [formOpen, setFormOpen] = useState(false);
+  const create = useCreateProduct();
   const [activeOnly, setActiveOnly] = useState(true);
   const [page, setPage] = useState(1);
 
@@ -40,6 +49,13 @@ export function ProductsPage() {
       <PageHeader
         title="Produits"
         subtitle={`${products.data.meta.total} référence(s)`}
+        actions={
+          <PermissionGate perm="catalog:manage">
+            <Button type="primary" onClick={() => setFormOpen(true)}>
+              Nouveau produit
+            </Button>
+          </PermissionGate>
+        }
       />
 
       <Card>
@@ -156,6 +172,24 @@ export function ProductsPage() {
           ]}
         />
       </Card>
+
+      {formOpen && (
+        <ProductForm
+          open
+          pending={create.isPending}
+          onCancel={() => setFormOpen(false)}
+          onSubmit={(payload) =>
+            create.mutate(payload, {
+              onSuccess: (product) => {
+                setFormOpen(false);
+                // On enchaîne sur la fiche : un produit sans variante ne se
+                // vend pas, et c'est là qu'on les ajoute.
+                void navigate(`/catalog/products/${product.id}`);
+              },
+            })
+          }
+        />
+      )}
     </>
   );
 }

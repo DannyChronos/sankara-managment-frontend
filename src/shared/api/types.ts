@@ -270,6 +270,8 @@ export interface Category {
   children?: Category[];
 }
 
+export type Firmness = 'SOFT' | 'MEDIUM' | 'FIRM' | 'EXTRA_FIRM';
+
 export interface ProductListItem {
   id: string;
   name: string;
@@ -580,4 +582,9 @@ export interface Notification {
 export interface NotificationPage {
   data: Notification[];
   meta: PageMeta & { unread: number };
+}
+
+/** Arborescence : `children` n'est présent que si on l'a demandée en arbre. */
+export interface CategoryNode extends Category {
+  children?: CategoryNode[];
 }

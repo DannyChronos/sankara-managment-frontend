@@ -150,6 +150,20 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: 'catalog/categories',
+        lazy: async () => {
+          const { CategoriesPage } =
+            await import('../features/catalog/pages/CategoriesPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="catalog:read">
+                <CategoriesPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
         path: 'catalog/products/:id',
         lazy: async () => {
           const { ProductDetailPage } =
