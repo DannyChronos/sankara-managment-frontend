@@ -522,8 +522,8 @@ export interface UserSummary {
   firstName: string;
   lastName: string;
   fullName: string;
-  email: string | null;
-  phone: string;
+  email: string;
+  phone: string | null;
   status: 'ACTIVE' | 'DISABLED' | 'LOCKED';
   role: { id: string; code: RoleCode; name: string };
   sites: { id: string; code: string; name: string; isDefault: boolean }[];
@@ -534,9 +534,9 @@ export interface UserSummary {
 
 export type UserStatus = 'ACTIVE' | 'DISABLED' | 'LOCKED';
 
-/** Renvoyé une seule fois, à la création, si le mot de passe a été généré. */
 export interface CreatedUser extends UserSummary {
-  temporaryPassword?: string;
+  /** Vrai quand un code d'activation vient de partir par email. */
+  activationSent: boolean;
 }
 
 export interface Role {

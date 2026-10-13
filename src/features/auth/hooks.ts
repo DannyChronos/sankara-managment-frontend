@@ -65,3 +65,19 @@ export function useRestoreSession(): void {
     };
   }, [setSession, setInitialized]);
 }
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (identifier: string) => authApi.forgotPassword(identifier),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (payload: {
+      identifier: string;
+      code: string;
+      password: string;
+    }) => authApi.resetPassword(payload),
+  });
+}

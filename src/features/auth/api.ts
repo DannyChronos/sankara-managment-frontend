@@ -12,8 +12,13 @@ export const authApi = {
   logout: () => api.post<null>('/auth/logout'),
   forgotPassword: (identifier: string) =>
     api.post<null>('/auth/forgot-password', { identifier }),
-  resetPassword: (payload: { token: string; password: string }) =>
-    api.post<null>('/auth/reset-password', payload),
+  // Le serveur envoie un code à 6 chiffres, pas un lien : il faut donc lui
+  // redonner l'identifiant avec le code.
+  resetPassword: (payload: {
+    identifier: string;
+    code: string;
+    password: string;
+  }) => api.post<null>('/auth/reset-password', payload),
   changePassword: (payload: { currentPassword: string; newPassword: string }) =>
     api.post<null>('/auth/change-password', payload),
 };

@@ -91,12 +91,27 @@ export function UserForm({
           <Input maxLength={60} />
         </Form.Item>
 
+        {/*
+          L'email d'abord : c'est par lui que part le code d'activation, puis
+          toute réinitialisation. Un compte sans email serait inactivable.
+        */}
+        <Form.Item
+          name="email"
+          label="Email"
+          extra="Identifiant de connexion, et canal du code d’activation."
+          rules={[
+            { required: true, message: 'L’email est obligatoire.' },
+            { type: 'email', message: 'Adresse email invalide.' },
+          ]}
+        >
+          <Input maxLength={180} placeholder="awa@matelas-sankara.bj" />
+        </Form.Item>
+
         <Form.Item
           name="phone"
           label="Téléphone"
-          extra="Sert d’identifiant de connexion, au même titre que l’email."
+          extra="Facultatif : second identifiant de connexion et secours par SMS."
           rules={[
-            { required: true, message: 'Le téléphone est obligatoire.' },
             {
               pattern: /^\+?[0-9]{8,15}$/,
               message: 'Numéro invalide (8 à 15 chiffres).',
@@ -104,14 +119,6 @@ export function UserForm({
           ]}
         >
           <Input maxLength={16} placeholder="+22997000011" />
-        </Form.Item>
-
-        <Form.Item
-          name="email"
-          label="Email"
-          rules={[{ type: 'email', message: 'Adresse email invalide.' }]}
-        >
-          <Input maxLength={180} />
         </Form.Item>
 
         <Form.Item

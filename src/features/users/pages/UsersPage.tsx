@@ -306,21 +306,21 @@ export function UsersPage() {
       )}
 
       <Modal
-        open={Boolean(created?.temporaryPassword)}
-        title="Mot de passe provisoire"
-        okText="J’ai noté"
+        open={Boolean(created?.activationSent)}
+        title="Compte créé"
+        okText="Compris"
         cancelButtonProps={{ style: { display: 'none' } }}
         onOk={() => setCreated(null)}
         onCancel={() => setCreated(null)}
       >
         <Typography.Paragraph>
-          Le compte de <strong>{created?.fullName}</strong> est créé.
-          Transmettez-lui ce mot de passe : il ne sera plus affiché.
+          Le compte de <strong>{created?.fullName}</strong> est créé. Un code
+          d’activation vient de partir à <strong>{created?.email}</strong>.
         </Typography.Paragraph>
-        <Typography.Paragraph copyable={{ text: created?.temporaryPassword }}>
-          <Typography.Text code style={{ fontSize: 18 }}>
-            {created?.temporaryPassword}
-          </Typography.Text>
+        <Typography.Paragraph type="secondary">
+          Il choisira lui-même son mot de passe : aucun secret ne passe par
+          vous. Le code reste valable 3 jours ; passé ce délai, il pourra en
+          demander un nouveau depuis « Mot de passe oublié ».
         </Typography.Paragraph>
       </Modal>
     </>
