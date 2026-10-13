@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Flex, Layout, Menu, Typography } from 'antd';
 import { navigation } from './navigation';
@@ -13,6 +13,10 @@ import { SIDEBAR_WIDTH } from '../shared/constants/layout';
 export function AppSidebar() {
   const { can } = usePermission();
   const location = useLocation();
+  // `null` tant que l'utilisateur n'a rien replié : le menu s'ouvre alors sur
+  // la section de l'écran courant. Dès qu'il ouvre ou ferme quelque chose,
+  // c'est son choix qui vaut — le menu ne se réarrange plus sous ses yeux.
+  const [opened, setOpened] = useState<string[] | null>(null);
 
   // Le menu est déclaré une fois (navigation.ts) puis filtré : une section
   // dont aucune entrée n'est permise disparaît entièrement. La clé porte la
@@ -24,7 +28,6 @@ export function AppSidebar() {
         .map((section) => ({
           key: section.key,
           label: section.label,
-          type: 'group' as const,
           children: section.items
             .filter((item) => can(item.perm))
             .map((item) => ({
@@ -38,8 +41,8 @@ export function AppSidebar() {
 
   // Entrée la plus précise qui couvre l'URL : un détail de bon
   // (/stock/operations/<id>) garde « Bons d'entrée / sortie » surligné.
-  const selectedKeys = useMemo(() => {
-    let best: { key: string; length: number } | null = null;
+  const active = useMemo(() => {
+    let best: { section: string; key: string; length: number } | null = null;
 
     for (const section of navigation) {
       for (const item of section.items) {
@@ -48,6 +51,7 @@ export function AppSidebar() {
           location.pathname.startsWith(`${item.path}/`);
         if (covers && (!best || item.path.length > best.length)) {
           best = {
+            section: section.key,
             key: `${section.key}/${item.key}`,
             length: item.path.length,
           };
@@ -55,8 +59,10 @@ export function AppSidebar() {
       }
     }
 
-    return best ? [best.key] : [];
+    return best;
   }, [location.pathname]);
+
+  const openKeys = opened ?? (active ? [active.section] : []);
 
   return (
     <Layout.Sider
@@ -90,7 +96,9 @@ export function AppSidebar() {
             theme="dark"
             mode="inline"
             items={items}
-            selectedKeys={selectedKeys}
+            selectedKeys={active ? [active.key] : []}
+            openKeys={openKeys}
+            onOpenChange={setOpened}
           />
         </div>
       </Flex>

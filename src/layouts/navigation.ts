@@ -140,12 +140,6 @@ export const navigation: NavSection[] = [
         path: '/customers',
         perm: 'customers:read',
       },
-      {
-        key: 'orders',
-        label: 'Commandes web',
-        path: '/orders',
-        perm: 'orders:read',
-      },
     ],
   },
   {
