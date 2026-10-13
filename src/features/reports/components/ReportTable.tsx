@@ -14,10 +14,14 @@ export function ReportTable({ report }: { report: ReportResult }) {
   }
 
   const hasTotals = Object.keys(report.totals).length > 0;
+  // Une ligne de rapport est un agrégat : elle n'a pas d'identifiant propre.
+  // On lui en donne un à la lecture plutôt que de s'appuyer sur l'index, que
+  // le tableau ne garantit plus.
+  const rows = report.rows.map((row, index) => ({ ...row, __key: index }));
 
   return (
     <Table<Record<string, unknown>>
-      rowKey={(_, index) => String(index)}
+      rowKey="__key"
       size="small"
       sticky={{ offsetHeader: HEADER_HEIGHT }}
       scroll={{ x: 'max-content' }}
@@ -26,7 +30,7 @@ export function ReportTable({ report }: { report: ReportResult }) {
         showSizeChanger: false,
         hideOnSinglePage: true,
       }}
-      dataSource={report.rows}
+      dataSource={rows}
       columns={report.columns.map((column) => ({
         title: column.label,
         dataIndex: column.key,

@@ -11,9 +11,6 @@ export function resolveNotificationLink(link: string | null): string | null {
   // est utile, pas l'URL de téléchargement.
   if (link.startsWith('/reports/exports/')) return '/reports';
 
-  // Le détail d'une session de caisse n'a pas encore son écran.
-  if (/^\/cash-sessions\/[^/]+$/.test(link)) return null;
-
   const known = [
     '/dashboard',
     '/stock',

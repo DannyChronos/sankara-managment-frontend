@@ -66,6 +66,20 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: 'cash-sessions',
+        lazy: async () => {
+          const { SessionsPage } =
+            await import('../features/cash-sessions/pages/SessionsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="cash-sessions:open">
+                <SessionsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
         path: 'cash-sessions/to-verify',
         lazy: async () => {
           const { SessionsToVerifyPage } =
@@ -74,6 +88,20 @@ export const router = createBrowserRouter([
             Component: () => (
               <RequirePermission perm="cash-sessions:verify">
                 <SessionsToVerifyPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'cash-sessions/:id',
+        lazy: async () => {
+          const { SessionDetailPage } =
+            await import('../features/cash-sessions/pages/SessionDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="cash-sessions:open">
+                <SessionDetailPage />
               </RequirePermission>
             ),
           };

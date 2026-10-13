@@ -15,13 +15,15 @@ describe('cible d’une notification', () => {
   });
 
   it('n’ouvre rien quand l’écran n’est pas encore construit', () => {
-    // Le détail d'une session de caisse n'a pas d'écran : pas de bouton.
-    expect(resolveNotificationLink('/cash-sessions/abc')).toBeNull();
+    // Les commandes web sont du périmètre V2 : pas d'écran, pas de bouton.
     expect(resolveNotificationLink('/orders/abc')).toBeNull();
     expect(resolveNotificationLink(null)).toBeNull();
   });
 
-  it('garde les écrans de caisse qui existent', () => {
+  it('ouvre les écrans de caisse', () => {
+    expect(resolveNotificationLink('/cash-sessions/abc')).toBe(
+      '/cash-sessions/abc',
+    );
     expect(resolveNotificationLink('/cash-sessions/abc/verify')).toBe(
       '/cash-sessions/abc/verify',
     );

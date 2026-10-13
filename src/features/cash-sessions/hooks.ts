@@ -58,6 +58,17 @@ export function useSessionEvents(id: string | undefined) {
   });
 }
 
+/** Historique des sessions. Sans `cash-sessions:read-all`, l'API ne renvoie
+ *  que les siennes : « toutes les sessions » et « mes sessions » sont le même
+ *  écran, vu depuis deux rôles. */
+export function useSessions(filters: Record<string, unknown>) {
+  return useQuery({
+    queryKey: ['cash-sessions', 'list', filters],
+    queryFn: () => cashSessionsApi.list(filters),
+    staleTime: 30_000,
+  });
+}
+
 export function useSessionsToVerify() {
   return useQuery({
     queryKey: qk.sessionsToVerify(),
