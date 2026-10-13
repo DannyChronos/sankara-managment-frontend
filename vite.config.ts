@@ -21,5 +21,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     css: false,
+    // Les tests pilotent de vrais composants Ant Design dans jsdom : sur une
+    // machine chargée, 5 s ne suffisent pas et la suite échoue au hasard.
+    testTimeout: 15_000,
   },
 });

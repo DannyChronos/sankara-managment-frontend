@@ -39,7 +39,7 @@ describe('fenêtre d’encaissement', () => {
   });
 
   it('bloque la validation tant que la somme ne couvre pas le total (RG-06)', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderModal();
 
     const amount = screen.getAllByRole('spinbutton')[0];
@@ -51,7 +51,7 @@ describe('fenêtre d’encaissement', () => {
   });
 
   it('affiche le rendu monnaie dès que le montant remis dépasse le dû', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderModal();
 
     const tendered = screen.getByPlaceholderText('Remis');
@@ -62,7 +62,7 @@ describe('fenêtre d’encaissement', () => {
   });
 
   it('exige une référence hors espèces', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderModal();
 
     await user.click(screen.getByRole('button', { name: /ajouter un mode/i }));
@@ -83,7 +83,7 @@ describe('fenêtre d’encaissement', () => {
   });
 
   it('renvoie les paiements saisis', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSubmit } = renderModal();
 
     await user.type(screen.getByPlaceholderText('Remis'), '200000');

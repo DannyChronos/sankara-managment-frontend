@@ -62,7 +62,7 @@ describe('nouveau bon de stock', () => {
   });
 
   it('crée un bon d’entrée dès qu’une ligne est saisie', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderPage();
 
     await user.click(addLine());
@@ -80,7 +80,7 @@ describe('nouveau bon de stock', () => {
   });
 
   it('exige un motif pour une sortie (F-14)', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderPage('?type=WRITE_OFF');
 
     await user.click(addLine());
@@ -95,7 +95,7 @@ describe('nouveau bon de stock', () => {
   });
 
   it('ne propose le prix de revient que sur une entrée', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { unmount } = renderPage();
 
     await user.click(addLine());
@@ -108,7 +108,7 @@ describe('nouveau bon de stock', () => {
   });
 
   it('alerte quand la quantité sortie dépasse le disponible', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderPage('?type=INTERNAL_USE');
 
     await user.click(addLine());

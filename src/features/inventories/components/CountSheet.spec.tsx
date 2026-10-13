@@ -47,7 +47,7 @@ const saveButton = () => screen.getByRole('button', { name: /enregistrer/i });
 
 describe('feuille de comptage', () => {
   it('masque le théorique : voir le chiffre attendu, c’est le compter', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderSheet();
 
     expect(screen.queryAllByText('Théorique')).toHaveLength(0);
@@ -60,7 +60,7 @@ describe('feuille de comptage', () => {
   });
 
   it('n’enregistre que ce qui a changé', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSave } = renderSheet();
 
     expect(saveButton()).toBeDisabled();
@@ -73,7 +73,7 @@ describe('feuille de comptage', () => {
   });
 
   it('un bip de douchette ajoute une unité à la référence scannée', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSave } = renderSheet();
 
     const scan = screen.getByPlaceholderText(/scanner ou saisir un sku/i);
@@ -85,7 +85,7 @@ describe('feuille de comptage', () => {
   });
 
   it('signale un code inconnu au lieu de compter dans le vide', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderSheet();
 
     await user.type(
@@ -98,7 +98,7 @@ describe('feuille de comptage', () => {
   });
 
   it('le filtre « reste à compter » ne garde que les lignes vides', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderSheet();
 
     expect(screen.getByText('Matelas Deluxe — 160×200')).toBeInTheDocument();

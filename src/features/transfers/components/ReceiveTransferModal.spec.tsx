@@ -66,7 +66,7 @@ describe('réception d’un transfert', () => {
   });
 
   it('bloque la confirmation tant qu’un écart n’est pas justifié', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderModal();
 
     const received = screen.getByRole('spinbutton');
@@ -85,7 +85,7 @@ describe('réception d’un transfert', () => {
   });
 
   it('renvoie le motif seulement sur les lignes en écart', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSubmit } = renderModal();
 
     const received = screen.getByRole('spinbutton');
@@ -103,7 +103,7 @@ describe('réception d’un transfert', () => {
   });
 
   it('ne laisse pas recevoir plus qu’il n’a été expédié', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSubmit } = renderModal();
 
     const received = screen.getByRole('spinbutton');

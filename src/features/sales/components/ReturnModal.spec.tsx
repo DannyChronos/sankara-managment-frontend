@@ -91,7 +91,7 @@ describe('retour sur une vente', () => {
   });
 
   it('exige un motif même quand un article est choisi', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderModal();
 
     const quantity = screen.getByRole('spinbutton');
@@ -106,7 +106,7 @@ describe('retour sur une vente', () => {
   });
 
   it('calcule le remboursement sur le prix réellement payé', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderModal();
 
     const quantity = screen.getByRole('spinbutton');
@@ -119,7 +119,7 @@ describe('retour sur une vente', () => {
   });
 
   it('renvoie les lignes choisies, le motif et le mode de remboursement', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSubmit } = renderModal();
 
     const quantity = screen.getByRole('spinbutton');
@@ -137,7 +137,7 @@ describe('retour sur une vente', () => {
   });
 
   it('permet de ne pas remettre en stock un article abîmé', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onSubmit } = renderModal();
 
     const quantity = screen.getByRole('spinbutton');

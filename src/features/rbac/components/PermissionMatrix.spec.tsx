@@ -50,7 +50,7 @@ describe('matrice des permissions', () => {
   });
 
   it('coche le module entier d’un seul geste', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onChange } = renderMatrix(['stock:read']);
 
     await user.click(moduleBox('Stock'));
@@ -59,7 +59,7 @@ describe('matrice des permissions', () => {
   });
 
   it('décocher le module retire ses permissions et garde les autres', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onChange } = renderMatrix([
       'stock:read',
       'stock:entry',
@@ -79,7 +79,7 @@ describe('matrice des permissions', () => {
   });
 
   it('déplie un module pour cocher ligne à ligne', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const { onChange } = renderMatrix([]);
 
     await user.click(screen.getByText('Stock'));
