@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import { errorMessage } from '../../shared/api/errors';
-import { useDebounce } from '../../shared/hooks/useDebounce';
 import { stockApi } from './api';
 
 export function useStockLevels(filters: Record<string, unknown>) {
@@ -33,16 +32,6 @@ export function useSuppliers() {
     queryKey: ['suppliers'],
     queryFn: () => stockApi.suppliers(),
     staleTime: 5 * 60_000,
-  });
-}
-
-export function useVariantPicker(term: string) {
-  const debounced = useDebounce(term, 250);
-
-  return useQuery({
-    queryKey: ['catalog', 'picker', debounced],
-    queryFn: () => stockApi.searchVariants(debounced),
-    enabled: debounced.trim().length >= 2,
   });
 }
 

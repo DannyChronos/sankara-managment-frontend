@@ -12,10 +12,14 @@ import {
   Table,
   Typography,
 } from 'antd';
-import { Money, MoneyInput, PageHeader } from '../../../shared/components';
+import {
+  Money,
+  MoneyInput,
+  PageHeader,
+  VariantPicker,
+} from '../../../shared/components';
 import { useAuth } from '../../../shared/auth/useAuth';
 import { useCreateOperation, useSuppliers } from '../hooks';
-import { VariantPicker } from '../components/VariantPicker';
 import { ENTRY_TYPES, OPERATION_TYPE } from '../labels';
 import type { VariantSearchResult } from '../../../shared/api/types';
 

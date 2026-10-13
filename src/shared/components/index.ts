@@ -8,4 +8,5 @@ export { OfflineBanner } from './OfflineBanner';
 export { ConfirmAction } from './ConfirmAction';
 export { PdfButton } from './PdfButton';
 export { BarChart } from './BarChart';
+export { VariantPicker } from './VariantPicker';
 export type { BarPoint } from './BarChart';

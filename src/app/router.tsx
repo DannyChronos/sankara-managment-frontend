@@ -219,8 +219,77 @@ export const router = createBrowserRouter([
           };
         },
       },
-      // ...transferRoutes, ...inventoryRoutes,
-      // ...cashSessionRoutes, ...salesRoutes, ...customerRoutes, ...orderRoutes,
+      {
+        path: 'transfers',
+        lazy: async () => {
+          const { TransfersPage } =
+            await import('../features/transfers/pages/TransfersPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="transfers:read">
+                <TransfersPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'transfers/new',
+        lazy: async () => {
+          const { NewTransferPage } =
+            await import('../features/transfers/pages/NewTransferPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="transfers:ship">
+                <NewTransferPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'transfers/:id',
+        lazy: async () => {
+          const { TransferDetailPage } =
+            await import('../features/transfers/pages/TransferDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="transfers:read">
+                <TransferDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'inventories',
+        lazy: async () => {
+          const { InventoriesPage } =
+            await import('../features/inventories/pages/InventoriesPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="inventories:read">
+                <InventoriesPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'inventories/:id',
+        lazy: async () => {
+          const { InventoryDetailPage } =
+            await import('../features/inventories/pages/InventoryDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="inventories:read">
+                <InventoryDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      // ...salesRoutes, ...customerRoutes, ...orderRoutes,
       // ...reportRoutes, ...adminRoutes
     ],
   },

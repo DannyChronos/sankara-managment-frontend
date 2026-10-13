@@ -5,7 +5,6 @@ import type {
   StockMovementView,
   StockOperation,
   Supplier,
-  VariantSearchResult,
 } from '../../shared/api/types';
 
 export const stockApi = {
@@ -41,11 +40,6 @@ export const stockApi = {
 
   suppliers: () =>
     api.getPaged<Supplier>('/suppliers', { params: { limit: 100 } }),
-
-  searchVariants: (q: string) =>
-    api.get<VariantSearchResult[]>('/catalog/variants/search', {
-      params: { q, limit: 15 },
-    }),
 };
 
 export type { Paginated };

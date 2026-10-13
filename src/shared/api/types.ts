@@ -374,3 +374,76 @@ export interface Supplier {
   email: string | null;
   isActive: boolean;
 }
+
+export type TransferStatus =
+  'DRAFT' | 'SHIPPED' | 'RECEIVED' | 'RECEIVED_WITH_GAP' | 'CANCELLED';
+
+export interface TransferLine {
+  id: string;
+  variantId: string;
+  sku: string | null;
+  variantName: string | null;
+  productName: string | null;
+  quantitySent: number;
+  /** `null` tant que le transfert n'est pas réceptionné. */
+  quantityReceived: number | null;
+  /** Reçu − expédié ; négatif quand il manque de la marchandise. */
+  gap: number | null;
+  gapReason: string | null;
+}
+
+export interface Transfer {
+  id: string;
+  number: string;
+  status: TransferStatus;
+  note: string | null;
+  fromSite: { id: string; code: string; name: string };
+  toSite: { id: string; code: string; name: string };
+  shippedAt: string | null;
+  receivedAt: string | null;
+  createdAt: string;
+  totalSent: number;
+  totalReceived: number;
+  lines: TransferLine[];
+}
+
+export type InventoryStatus =
+  'IN_PROGRESS' | 'SUBMITTED' | 'VALIDATED' | 'CANCELLED';
+
+export interface InventoryLine {
+  id: string;
+  variantId: string;
+  sku: string | null;
+  variantName: string | null;
+  productName: string | null;
+  /** Stock théorique figé à l'ouverture de l'inventaire. */
+  expectedQty: number;
+  countedQty: number | null;
+  difference: number | null;
+}
+
+export interface Inventory {
+  id: string;
+  number: string;
+  status: InventoryStatus;
+  note: string | null;
+  site: { id: string; code: string; name: string };
+  submittedAt: string | null;
+  validatedAt: string | null;
+  createdAt: string;
+  lineCount: number;
+  countedCount: number;
+  gapCount: number;
+  lines: InventoryLine[];
+}
+
+export interface Site {
+  id: string;
+  code: string;
+  name: string;
+  type: 'WAREHOUSE' | 'SHOP' | 'MIXED';
+  address: string | null;
+  phone: string | null;
+  canSell: boolean;
+  isActive: boolean;
+}

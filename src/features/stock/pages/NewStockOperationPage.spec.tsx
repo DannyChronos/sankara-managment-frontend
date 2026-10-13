@@ -27,7 +27,7 @@ const variant: VariantSearchResult = {
   available: 5,
 };
 
-vi.mock('../components/VariantPicker', () => ({
+vi.mock('../../../shared/components/VariantPicker', () => ({
   VariantPicker: ({ onPick }: { onPick: (v: VariantSearchResult) => void }) => (
     <button type="button" onClick={() => onPick(variant)}>
       ajouter l’article de test
