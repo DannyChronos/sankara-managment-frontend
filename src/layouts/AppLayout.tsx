@@ -1,6 +1,18 @@
+import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Avatar, Dropdown, Flex, Layout, Typography } from 'antd';
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  Avatar,
+  Button,
+  Drawer,
+  Dropdown,
+  Flex,
+  Grid,
+  Layout,
+  Typography,
+} from 'antd';
+import { LogoutOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
+import { AppBrand } from './AppBrand';
+import { AppMenu } from './AppMenu';
 import { AppSidebar } from './AppSidebar';
 import { SiteSelect } from './SiteSelect';
 import { OfflineBanner } from '../shared/components';
@@ -8,12 +20,19 @@ import { NotificationBell } from '../features/notifications/components/Notificat
 import { useAuth } from '../shared/auth/useAuth';
 import { useLogout } from '../features/auth/hooks';
 import { roleLabel } from '../shared/constants/labels';
-import { HEADER_HEIGHT } from '../shared/constants/layout';
+import { HEADER_HEIGHT, SIDEBAR_WIDTH } from '../shared/constants/layout';
 
 export function AppLayout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const logout = useLogout();
+  const screens = Grid.useBreakpoint();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // En dessous de `lg`, la colonne latérale n'est pas rendue : la navigation
+  // passe par un tiroir, ouvert depuis l'en-tête. `useBreakpoint` renvoie un
+  // objet vide au tout premier rendu, d'où la comparaison stricte.
+  const compact = screens.lg === false;
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -38,7 +57,17 @@ export function AppLayout() {
             borderBottom: '1px solid #e8eef5',
           }}
         >
-          <SiteSelect />
+          <Flex align="center" gap={12}>
+            {compact && (
+              <Button
+                type="text"
+                icon={<MenuOutlined />}
+                aria-label="Ouvrir le menu"
+                onClick={() => setDrawerOpen(true)}
+              />
+            )}
+            <SiteSelect />
+          </Flex>
           <Flex align="center" gap={16}>
             <NotificationBell />
             <Dropdown
@@ -80,6 +109,23 @@ export function AppLayout() {
           <Outlet />
         </Layout.Content>
       </Layout>
+
+      <Drawer
+        open={compact && drawerOpen}
+        placement="left"
+        width={SIDEBAR_WIDTH}
+        closable={false}
+        onClose={() => setDrawerOpen(false)}
+        styles={{
+          body: { padding: 0, background: 'var(--sankara-navy)' },
+          header: { display: 'none' },
+        }}
+      >
+        <AppBrand />
+        {/* Choisir un écran referme le tiroir : sur un petit écran, il
+            recouvre justement ce qu'on vient d'ouvrir. */}
+        <AppMenu onNavigate={() => setDrawerOpen(false)} />
+      </Drawer>
     </Layout>
   );
 }
