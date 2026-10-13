@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import type { InputRef } from 'antd';
 import type { InventoryLine } from '../../../shared/api/types';
+import { HEADER_HEIGHT } from '../../../shared/constants/layout';
 
 interface Props {
   lines: InventoryLine[];
@@ -120,7 +121,7 @@ export function CountSheet({ lines, saving, onSave }: Props) {
         pagination={false}
         // En-tête collant plutôt qu'un cadre à défilement interne : sur une
         // tablette on fait défiler la page, et les colonnes restent alignées.
-        sticky
+        sticky={{ offsetHeader: HEADER_HEIGHT }}
         dataSource={visible}
         locale={{ emptyText: 'Tout est compté.' }}
         columns={[

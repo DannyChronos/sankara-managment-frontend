@@ -1,6 +1,7 @@
 import { Empty, Table, Typography } from 'antd';
 import { Money } from '../../../shared/components';
 import type { ReportResult } from '../../../shared/api/types';
+import { HEADER_HEIGHT } from '../../../shared/constants/layout';
 
 /**
  * Le rapport décrit lui-même ses colonnes : le frontend ne sait pas ce qu'il
@@ -18,7 +19,7 @@ export function ReportTable({ report }: { report: ReportResult }) {
     <Table<Record<string, unknown>>
       rowKey={(_, index) => String(index)}
       size="small"
-      sticky
+      sticky={{ offsetHeader: HEADER_HEIGHT }}
       scroll={{ x: 'max-content' }}
       pagination={{
         pageSize: 50,
