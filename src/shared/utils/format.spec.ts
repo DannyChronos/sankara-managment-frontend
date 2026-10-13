@@ -13,6 +13,11 @@ describe('formatXof', () => {
   it('arrondit : le franc CFA n’a pas de centimes', () => {
     expect(plain(formatXof(1500.4))).toBe('1 500 FCFA');
   });
+
+  it('n’affiche jamais « -0 »', () => {
+    expect(plain(formatXof(-0))).toBe('0 FCFA');
+    expect(plain(formatXof(-0.2))).toBe('0 FCFA');
+  });
 });
 
 describe('formatGap', () => {

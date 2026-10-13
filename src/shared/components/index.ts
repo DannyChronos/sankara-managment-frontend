@@ -6,3 +6,6 @@ export { PermissionGate } from './PermissionGate';
 export { EmptyState, ErrorState, PageSkeleton } from './States';
 export { OfflineBanner } from './OfflineBanner';
 export { ConfirmAction } from './ConfirmAction';
+export { PdfButton } from './PdfButton';
+export { BarChart } from './BarChart';
+export type { BarPoint } from './BarChart';

@@ -14,9 +14,9 @@ const NARROW_NBSP = String.fromCodePoint(0x202f);
 
 /** `185000` -> `185 000 FCFA` — entiers seulement (CDC RG-16). */
 export function formatXof(amount: number): string {
-  const grouped = Math.round(amount)
-    .toLocaleString('fr-FR')
-    .replace(/\s/g, NARROW_NBSP);
+  // `Math.round(-0)` vaut -0, qui s'affiche « -0 » : un zéro n'a pas de signe.
+  const rounded = Math.round(amount) || 0;
+  const grouped = rounded.toLocaleString('fr-FR').replace(/\s/g, NARROW_NBSP);
   return `${grouped}${NARROW_NBSP}FCFA`;
 }
 

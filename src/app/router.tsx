@@ -51,6 +51,62 @@ export const router = createBrowserRouter([
           };
         },
       },
+      {
+        path: 'cash-sessions/me',
+        lazy: async () => {
+          const { MySessionPage } =
+            await import('../features/cash-sessions/pages/MySessionPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="cash-sessions:open">
+                <MySessionPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'cash-sessions/to-verify',
+        lazy: async () => {
+          const { SessionsToVerifyPage } =
+            await import('../features/cash-sessions/pages/SessionsToVerifyPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="cash-sessions:verify">
+                <SessionsToVerifyPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'cash-sessions/:id/close',
+        lazy: async () => {
+          const { CloseSessionPage } =
+            await import('../features/cash-sessions/pages/CloseSessionPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="cash-sessions:close">
+                <CloseSessionPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'cash-sessions/:id/verify',
+        lazy: async () => {
+          const { VerifySessionPage } =
+            await import('../features/cash-sessions/pages/VerifySessionPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="cash-sessions:verify">
+                <VerifySessionPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
       // ...catalogRoutes, ...stockRoutes, ...transferRoutes, ...inventoryRoutes,
       // ...cashSessionRoutes, ...salesRoutes, ...customerRoutes, ...orderRoutes,
       // ...reportRoutes, ...adminRoutes

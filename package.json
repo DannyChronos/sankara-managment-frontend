@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "gen:api": "openapi-typescript $VITE_API_URL/../../docs-json -o src/shared/api/schema.d.ts",
+    "gen:api": "openapi-typescript \"$VITE_OPENAPI_URL\" -o src/shared/api/schema.d.ts",
     "lint": "eslint . --fix",
     "lint:check": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
@@ -22,7 +22,6 @@
   },
   "packageManager": "pnpm@11.22.0",
   "dependencies": {
-    "@ant-design/charts": "^2.6.7",
     "@ant-design/icons": "^6.3.4",
     "@tanstack/react-query": "^5.104.1",
     "antd": "^5.29.3",
