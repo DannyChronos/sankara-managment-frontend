@@ -87,6 +87,12 @@ export const navigation: NavSection[] = [
         perm: 'stock:read',
       },
       {
+        key: 'operations',
+        label: 'Bons d’entrée / sortie',
+        path: '/stock/operations',
+        perm: 'stock:read',
+      },
+      {
         key: 'transfers',
         label: 'Transferts',
         path: '/transfers',

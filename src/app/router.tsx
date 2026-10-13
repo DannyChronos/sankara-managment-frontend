@@ -149,7 +149,77 @@ export const router = createBrowserRouter([
           };
         },
       },
-      // ...stockRoutes, ...transferRoutes, ...inventoryRoutes,
+      {
+        path: 'stock',
+        lazy: async () => {
+          const { StockLevelsPage } =
+            await import('../features/stock/pages/StockLevelsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:read">
+                <StockLevelsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'stock/movements',
+        lazy: async () => {
+          const { StockMovementsPage } =
+            await import('../features/stock/pages/StockMovementsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:read">
+                <StockMovementsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'stock/operations',
+        lazy: async () => {
+          const { StockOperationsPage } =
+            await import('../features/stock/pages/StockOperationsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:read">
+                <StockOperationsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'stock/operations/new',
+        lazy: async () => {
+          const { NewStockOperationPage } =
+            await import('../features/stock/pages/NewStockOperationPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:entry">
+                <NewStockOperationPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'stock/operations/:id',
+        lazy: async () => {
+          const { StockOperationDetailPage } =
+            await import('../features/stock/pages/StockOperationDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:read">
+                <StockOperationDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      // ...transferRoutes, ...inventoryRoutes,
       // ...cashSessionRoutes, ...salesRoutes, ...customerRoutes, ...orderRoutes,
       // ...reportRoutes, ...adminRoutes
     ],

@@ -318,3 +318,59 @@ export interface AuditLogEntry {
   userAgent: string | null;
   createdAt: string;
 }
+
+export interface StockMovementView {
+  id: string;
+  occurredAt: string;
+  siteCode: string;
+  sku: string;
+  variantName: string;
+  productName: string;
+  type: string;
+  direction: 'IN' | 'OUT';
+  quantity: number;
+  balanceAfter: number;
+  reason: string | null;
+  sourceType: string;
+  sourceId: string;
+  performedBy: string | null;
+}
+
+export interface StockOperationLine {
+  id: string;
+  variantId: string;
+  sku: string | null;
+  variantName: string | null;
+  productName: string | null;
+  quantity: number;
+  unitCost: number | null;
+}
+
+export interface StockOperation {
+  id: string;
+  number: string;
+  type:
+    | 'PRODUCTION_ENTRY'
+    | 'PURCHASE_RECEIPT'
+    | 'WRITE_OFF'
+    | 'SAMPLE'
+    | 'INTERNAL_USE';
+  direction: 'IN' | 'OUT';
+  status: 'DRAFT' | 'VALIDATED' | 'CANCELLED';
+  reason: string | null;
+  note: string | null;
+  site: { id: string; code: string; name: string };
+  supplier: { id: string; name: string } | null;
+  validatedAt: string | null;
+  createdAt: string;
+  totalQuantity: number;
+  lines: StockOperationLine[];
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  isActive: boolean;
+}

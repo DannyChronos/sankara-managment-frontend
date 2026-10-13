@@ -18,7 +18,9 @@ export function AppLayout() {
   const logout = useLogout();
 
   // Le menu est déclaré une fois (navigation.ts) puis filtré : une section
-  // dont aucune entrée n'est permise disparaît entièrement.
+  // dont aucune entrée n'est permise disparaît entièrement. La clé porte la
+  // section : deux entrées peuvent viser le même écran (« Mes ventes » et
+  // « Ventes ») sans se marcher dessus.
   const items = useMemo(
     () =>
       navigation
@@ -29,13 +31,35 @@ export function AppLayout() {
           children: section.items
             .filter((item) => can(item.perm))
             .map((item) => ({
-              key: item.path,
+              key: `${section.key}/${item.key}`,
               label: <Link to={item.path}>{item.label}</Link>,
             })),
         }))
         .filter((section) => section.children.length > 0),
     [can],
   );
+
+  // Entrée la plus précise qui couvre l'URL : un détail de bon
+  // (/stock/operations/<id>) garde « Bons d'entrée / sortie » surligné.
+  const selectedKeys = useMemo(() => {
+    let best: { key: string; length: number } | null = null;
+
+    for (const section of navigation) {
+      for (const item of section.items) {
+        const covers =
+          location.pathname === item.path ||
+          location.pathname.startsWith(`${item.path}/`);
+        if (covers && (!best || item.path.length > best.length)) {
+          best = {
+            key: `${section.key}/${item.key}`,
+            length: item.path.length,
+          };
+        }
+      }
+    }
+
+    return best ? [best.key] : [];
+  }, [location.pathname]);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -52,7 +76,7 @@ export function AppLayout() {
           theme="dark"
           mode="inline"
           items={items}
-          selectedKeys={[location.pathname]}
+          selectedKeys={selectedKeys}
         />
       </Layout.Sider>
 

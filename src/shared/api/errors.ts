@@ -84,9 +84,14 @@ export function toApiError(error: unknown): ApiError {
     }
 
     if (!error.response) {
+      // Aucune réponse du tout : réseau coupé, ou API injoignable. En
+      // développement, nommer l'adresse appelée évite de chercher longtemps.
+      const target = import.meta.env.DEV
+        ? ` (${import.meta.env.VITE_API_URL})`
+        : '';
       return new ApiError(
         'NETWORK_ERROR',
-        'Connexion perdue. Vérifiez votre réseau.',
+        `Serveur injoignable${target}. Vérifiez votre connexion.`,
         0,
       );
     }
