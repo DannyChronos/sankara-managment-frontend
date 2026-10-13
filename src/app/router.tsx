@@ -345,7 +345,21 @@ export const router = createBrowserRouter([
           };
         },
       },
-      // ...orderRoutes, ...reportRoutes, ...adminRoutes
+      {
+        path: 'reports',
+        lazy: async () => {
+          const { ReportsPage } =
+            await import('../features/reports/pages/ReportsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="reports:read">
+                <ReportsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      // ...orderRoutes, ...adminRoutes
     ],
   },
   {

@@ -475,3 +475,51 @@ export interface Site {
   canSell: boolean;
   isActive: boolean;
 }
+
+export type ReportType = 'sales' | 'stock' | 'movements' | 'cash-sessions';
+export type ExportFormat = 'xlsx' | 'pdf';
+
+export interface ReportColumn {
+  key: string;
+  label: string;
+  /** Colonne monétaire : alignée à droite et formatée en FCFA. */
+  money?: boolean;
+}
+
+export interface ReportResult {
+  type: ReportType;
+  title: string;
+  generatedAt: string;
+  filters: Record<string, string | undefined>;
+  columns: ReportColumn[];
+  rows: Record<string, unknown>[];
+  /** Sommes par clé de colonne ; seules certaines colonnes en ont une. */
+  totals: Record<string, number>;
+}
+
+export interface ExportRecord {
+  id: string;
+  type: ReportType;
+  format: ExportFormat;
+  status: 'PENDING' | 'READY' | 'FAILED';
+  createdAt: string;
+  completedAt?: string;
+  rowCount?: number;
+  fileName?: string;
+  error?: string;
+}
+
+export interface UserSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string | null;
+  phone: string;
+  status: 'ACTIVE' | 'DISABLED' | 'LOCKED';
+  role: { id: string; code: RoleCode; name: string };
+  sites: { id: string; code: string; name: string; isDefault: boolean }[];
+  discountCapPercent: number | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
