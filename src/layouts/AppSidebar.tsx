@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Flex, Layout, Menu, Typography } from 'antd';
+import { Flex, Layout, Menu, Tooltip, Typography } from 'antd';
 import { navigation } from './navigation';
+import { roleLabel } from '../shared/constants/labels';
 import { usePermission } from '../shared/auth/usePermission';
 import { SIDEBAR_WIDTH } from '../shared/constants/layout';
 
@@ -27,12 +28,33 @@ export function AppSidebar() {
       navigation
         .map((section) => ({
           key: section.key,
-          label: section.label,
+          label: (
+            <Tooltip
+              placement="right"
+              title={
+                <>
+                  <div>{section.hint}</div>
+                  <div style={{ opacity: 0.75, marginTop: 4 }}>
+                    Au quotidien :{' '}
+                    {section.roles
+                      .map((role) => roleLabel[role] ?? role)
+                      .join(', ')}
+                  </div>
+                </>
+              }
+            >
+              <span>{section.label}</span>
+            </Tooltip>
+          ),
           children: section.items
             .filter((item) => can(item.perm))
             .map((item) => ({
               key: `${section.key}/${item.key}`,
-              label: <Link to={item.path}>{item.label}</Link>,
+              label: (
+                <Tooltip placement="right" title={item.hint}>
+                  <Link to={item.path}>{item.label}</Link>
+                </Tooltip>
+              ),
             })),
         }))
         .filter((section) => section.children.length > 0),
