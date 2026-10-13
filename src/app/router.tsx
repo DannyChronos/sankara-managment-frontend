@@ -360,6 +360,34 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: 'suppliers',
+        lazy: async () => {
+          const { SuppliersPage } =
+            await import('../features/suppliers/pages/SuppliersPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:entry">
+                <SuppliersPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'suppliers/:id',
+        lazy: async () => {
+          const { SupplierDetailPage } =
+            await import('../features/suppliers/pages/SupplierDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="stock:entry">
+                <SupplierDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
         path: 'customers',
         lazy: async () => {
           const { CustomersPage } =

@@ -404,7 +404,11 @@ export interface Supplier {
   name: string;
   phone: string | null;
   email: string | null;
+  address: string | null;
   isActive: boolean;
+  operationCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export type TransferStatus =

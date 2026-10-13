@@ -138,6 +138,13 @@ export const navigation: NavSection[] = [
         perm: 'inventories:read',
         hint: 'Comptage physique et ajustement des écarts.',
       },
+      {
+        key: 'suppliers',
+        label: 'Fournisseurs',
+        path: '/suppliers',
+        perm: 'stock:entry',
+        hint: 'Qui livre les articles revendus, et ce qu’on a reçu d’eux.',
+      },
     ],
   },
   {
