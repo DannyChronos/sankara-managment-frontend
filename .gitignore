@@ -29,3 +29,5 @@ pnpm-debug.log*
 *.tsbuildinfo
 package-lock.json
 yarn.lock
+.vercel
+.env*
