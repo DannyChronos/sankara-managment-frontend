@@ -107,7 +107,49 @@ export const router = createBrowserRouter([
           };
         },
       },
-      // ...catalogRoutes, ...stockRoutes, ...transferRoutes, ...inventoryRoutes,
+      {
+        path: 'catalog/products',
+        lazy: async () => {
+          const { ProductsPage } =
+            await import('../features/catalog/pages/ProductsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="catalog:read">
+                <ProductsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'catalog/products/:id',
+        lazy: async () => {
+          const { ProductDetailPage } =
+            await import('../features/catalog/pages/ProductDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="catalog:read">
+                <ProductDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'audit',
+        lazy: async () => {
+          const { AuditLogPage } =
+            await import('../features/audit/pages/AuditLogPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="audit:read">
+                <AuditLogPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      // ...stockRoutes, ...transferRoutes, ...inventoryRoutes,
       // ...cashSessionRoutes, ...salesRoutes, ...customerRoutes, ...orderRoutes,
       // ...reportRoutes, ...adminRoutes
     ],

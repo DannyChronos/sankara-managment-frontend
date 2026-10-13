@@ -230,3 +230,91 @@ export interface Customer {
   email: string | null;
   city: string | null;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  parentId: string | null;
+  position: number;
+  isActive: boolean;
+  productCount: number;
+  children?: Category[];
+}
+
+export interface ProductListItem {
+  id: string;
+  name: string;
+  slug: string;
+  brand: string | null;
+  warrantyMonths: number | null;
+  isActive: boolean;
+  isPublishedOnline: boolean;
+  category: { id: string; name: string; slug: string };
+  variantCount: number;
+  priceRange: { min: number; max: number } | null;
+  createdAt: string;
+}
+
+export interface ProductVariantView {
+  id: string;
+  sku: string;
+  barcode: string | null;
+  name: string;
+  widthCm: number | null;
+  lengthCm: number | null;
+  thicknessCm: number | null;
+  densityKgM3: number | null;
+  firmness: string | null;
+  costPrice: number | null;
+  isActive: boolean;
+  prices: { POS: number | null; WEB: number | null };
+}
+
+export interface ProductDetail extends Omit<
+  ProductListItem,
+  'variantCount' | 'priceRange'
+> {
+  description: string | null;
+  images: {
+    id: string;
+    url: string;
+    alt: string | null;
+    position: number;
+    variantId: string | null;
+  }[];
+  variants: ProductVariantView[];
+}
+
+export interface StockLevelView {
+  id: string;
+  siteId: string;
+  siteCode: string;
+  variantId: string;
+  sku: string;
+  variantName: string;
+  productName: string;
+  onHand: number;
+  reserved: number;
+  available: number;
+  inTransitIn: number;
+  minThreshold: number;
+  isLow: boolean;
+  updatedAt: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  actorId: string | null;
+  actorName: string | null;
+  actorType: 'USER' | 'INTEGRATION' | 'SYSTEM';
+  siteId: string | null;
+  before: unknown;
+  after: unknown;
+  ip: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
