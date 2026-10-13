@@ -306,14 +306,16 @@ export interface ProductDetail extends Omit<
   'variantCount' | 'priceRange'
 > {
   description: string | null;
-  images: {
-    id: string;
-    url: string;
-    alt: string | null;
-    position: number;
-    variantId: string | null;
-  }[];
+  images: ProductImage[];
   variants: ProductVariantView[];
+}
+
+export interface ProductImage {
+  id: string;
+  url: string;
+  alt: string | null;
+  position: number;
+  variantId: string | null;
 }
 
 export interface StockLevelView {

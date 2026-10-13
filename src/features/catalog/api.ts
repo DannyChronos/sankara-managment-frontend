@@ -4,10 +4,18 @@ import type {
   Firmness,
   Paginated,
   ProductDetail,
+  ProductImage,
   ProductListItem,
   ProductVariantView,
   StockLevelView,
 } from '../../shared/api/types';
+
+export interface ProductImagePayload {
+  file: File;
+  variantId?: string;
+  alt?: string;
+  position?: number;
+}
 
 export interface CategoryPayload {
   name: string;
@@ -106,6 +114,24 @@ export const catalogApi = {
 
   variantStock: (variantId: string) =>
     api.get<StockLevelView[]>(`/stock/levels/variant/${variantId}`),
+
+  // Multipart : axios pose lui-même le Content-Type et sa frontière.
+  addProductImage: (productId: string, payload: ProductImagePayload) => {
+    const body = new FormData();
+    body.append('file', payload.file);
+    if (payload.variantId) body.append('variantId', payload.variantId);
+    if (payload.alt) body.append('alt', payload.alt);
+    if (payload.position !== undefined)
+      body.append('position', String(payload.position));
+
+    return api.post<ProductImage>(
+      `/catalog/products/${productId}/images`,
+      body,
+    );
+  },
+
+  removeProductImage: (productId: string, imageId: string) =>
+    api.delete<void>(`/catalog/products/${productId}/images/${imageId}`),
 };
 
 export type { Paginated };

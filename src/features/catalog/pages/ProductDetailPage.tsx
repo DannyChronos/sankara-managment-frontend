@@ -1,16 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  Alert,
-  Button,
-  Card,
-  Descriptions,
-  Empty,
-  Image,
-  Table,
-  Tabs,
-  Tag,
-} from 'antd';
+import { Alert, Button, Card, Descriptions, Table, Tabs, Tag } from 'antd';
 import {
   ErrorState,
   PageHeader,
@@ -27,6 +17,7 @@ import {
 import { FIRMNESS_LABEL } from '../labels';
 import { ProductForm } from '../components/ProductForm';
 import { VariantModal } from '../components/VariantModal';
+import { ProductPhotos } from '../components/ProductPhotos';
 import { PriceEditor } from '../components/PriceEditor';
 import type { ProductVariantView } from '../../../shared/api/types';
 
@@ -244,28 +235,7 @@ export function ProductDetailPage() {
           {
             key: 'images',
             label: `Photos (${product.images.length})`,
-            children: (
-              <Card>
-                {product.images.length === 0 ? (
-                  <Empty
-                    description="Aucune photo"
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  />
-                ) : (
-                  <Image.PreviewGroup>
-                    {product.images.map((image) => (
-                      <Image
-                        key={image.id}
-                        src={image.url}
-                        alt={image.alt ?? product.name}
-                        width={160}
-                        style={{ marginRight: 12, borderRadius: 8 }}
-                      />
-                    ))}
-                  </Image.PreviewGroup>
-                )}
-              </Card>
-            ),
+            children: <ProductPhotos product={product} />,
           },
         ]}
       />

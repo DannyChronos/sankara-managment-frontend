@@ -5,6 +5,7 @@ import {
   catalogApi,
   type CategoryPayload,
   type GenerateVariantsPayload,
+  type ProductImagePayload,
   type ProductPayload,
   type VariantPayload,
 } from './api';
@@ -130,6 +131,36 @@ export function useProducts(filters: Record<string, unknown>) {
     queryKey: ['catalog', 'products', filters],
     queryFn: () => catalogApi.products(filters),
     staleTime: 5 * 60_000,
+  });
+}
+
+export function useAddProductImage(productId: string) {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (payload: ProductImagePayload) =>
+      catalogApi.addProductImage(productId, payload),
+    onSuccess: () => {
+      invalidateCatalog(queryClient);
+      message.success('Photo ajoutée.');
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+export function useRemoveProductImage(productId: string) {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: (imageId: string) =>
+      catalogApi.removeProductImage(productId, imageId),
+    onSuccess: () => {
+      invalidateCatalog(queryClient);
+      message.success('Photo supprimée.');
+    },
+    onError: (error) => message.error(errorMessage(error)),
   });
 }
 

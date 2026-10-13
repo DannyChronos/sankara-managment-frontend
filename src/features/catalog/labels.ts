@@ -22,3 +22,17 @@ export const COMMON_SIZES = [
   { widthCm: 160, lengthCm: 200 },
   { widthCm: 180, lengthCm: 200 },
 ];
+
+/**
+ * Mêmes limites que le serveur (`catalog.constants.ts`) : autant refuser le
+ * fichier avant de l'envoyer que de le téléverser pour rien.
+ */
+export const ALLOWED_IMAGE_MIME = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+];
+
+export const MAX_IMAGE_MB = 5;
+export const MAX_IMAGE_BYTES = MAX_IMAGE_MB * 1024 * 1024;
