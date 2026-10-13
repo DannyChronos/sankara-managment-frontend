@@ -289,8 +289,63 @@ export const router = createBrowserRouter([
           };
         },
       },
-      // ...salesRoutes, ...customerRoutes, ...orderRoutes,
-      // ...reportRoutes, ...adminRoutes
+      {
+        path: 'sales',
+        lazy: async () => {
+          const { SalesPage } =
+            await import('../features/sales/pages/SalesPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="sales:read">
+                <SalesPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'sales/:id',
+        lazy: async () => {
+          const { SaleDetailPage } =
+            await import('../features/sales/pages/SaleDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="sales:read">
+                <SaleDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'customers',
+        lazy: async () => {
+          const { CustomersPage } =
+            await import('../features/customers/pages/CustomersPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="customers:read">
+                <CustomersPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'customers/:id',
+        lazy: async () => {
+          const { CustomerDetailPage } =
+            await import('../features/customers/pages/CustomerDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="customers:read">
+                <CustomerDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      // ...orderRoutes, ...reportRoutes, ...adminRoutes
     ],
   },
   {

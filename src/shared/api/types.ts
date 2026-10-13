@@ -228,7 +228,35 @@ export interface Customer {
   fullName: string;
   phone: string | null;
   email: string | null;
+  address: string | null;
   city: string | null;
+  notes: string | null;
+  orderCount: number;
+  createdAt: string;
+}
+
+/** Une ligne achetée, avec la garantie telle qu'elle courait à l'achat (F-33). */
+export interface CustomerPurchaseLine {
+  sku: string;
+  name: string;
+  productName: string;
+  quantity: number;
+  lineTotal: number;
+  returnedQty: number;
+  warrantyUntil: string | null;
+  underWarranty: boolean;
+}
+
+export interface CustomerPurchase {
+  id: string;
+  number: string;
+  channel: 'POS' | 'WEB';
+  status: string;
+  total: number;
+  refundedTotal: number;
+  createdAt: string;
+  site: { code: string; name: string };
+  lines: CustomerPurchaseLine[];
 }
 
 export interface Category {

@@ -48,6 +48,37 @@ const messages: Record<string, string> = {
   INTERNAL_ERROR: 'Une erreur est survenue. Réessayez dans un instant.',
 };
 
+/**
+ * Messages génériques du backend (`errorMessages`, BACKEND.md §11). Quand le
+ * serveur renvoie l'un d'eux, il n'a rien de plus à dire que le code : la
+ * version ci-dessus, plus parlante et interpolée, est préférable. Dès qu'il
+ * renvoie autre chose — « Ce numéro est déjà celui de Afi Kodjo. », « Ce bon
+ * est déjà validé » — c'est lui qui connaît le détail, et son message gagne.
+ */
+const genericServerMessages = new Set([
+  'Les données envoyées sont invalides.',
+  'Authentification requise.',
+  'Votre session a expiré.',
+  "Vous n'avez pas la permission d'effectuer cette action.",
+  "Vous n'avez pas accès à ce site.",
+  'Ressource introuvable.',
+  'Cette ressource existe déjà.',
+  'Stock insuffisant sur ce site.',
+  "Ouvrez votre caisse avant d'enregistrer une vente.",
+  'Une session de caisse est déjà ouverte.',
+  'Cette session est clôturée : aucune modification n’est possible.',
+  'Vous ne pouvez pas vérifier votre propre session.',
+  'Un commentaire est obligatoire en cas d’écart.',
+  'Le total des paiements ne correspond pas au montant à payer.',
+  'Cette remise dépasse votre plafond : demandez l’accord d’un administrateur.',
+  'Une référence de transaction est obligatoire pour ce mode de paiement.',
+  'L’en-tête Idempotency-Key est obligatoire sur cette requête.',
+  'Cette clé d’idempotence a déjà été utilisée avec un contenu différent.',
+  'Cette transition de statut n’est pas autorisée.',
+  'Trop de requêtes. Réessayez dans un instant.',
+  'Une erreur interne est survenue.',
+]);
+
 function interpolate(
   template: string,
   details?: Record<string, unknown>,
@@ -73,7 +104,12 @@ export function toApiError(error: unknown): ApiError {
     const status = error.response?.status ?? 0;
 
     if (body && body.success === false) {
-      const template = messages[body.error.code] ?? body.error.message;
+      const serverMessage = body.error.message;
+      const template =
+        serverMessage && !genericServerMessages.has(serverMessage)
+          ? serverMessage
+          : (messages[body.error.code] ?? serverMessage);
+
       return new ApiError(
         body.error.code,
         interpolate(template, body.error.details),
