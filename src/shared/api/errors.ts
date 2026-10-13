@@ -153,6 +153,25 @@ export function errorMessage(error: unknown): string {
     : apiError.message;
 }
 
+/**
+ * Erreurs de validation au format attendu par `Form.setFields` d'Ant Design.
+ * Le backend sait souvent quel champ pose problème — « Mot de passe actuel
+ * incorrect. » — et le dire sous le champ vaut mieux qu'un bandeau générique.
+ */
+export function antdFieldErrors<Name extends string>(
+  error: unknown,
+  // Les champs du formulaire. Le serveur peut en nommer un qui n'y figure
+  // pas — un identifiant technique, par exemple : on l'écarte plutôt que de
+  // laisser Ant Design chercher un champ inexistant.
+  known: readonly Name[],
+): { name: Name; errors: string[] }[] {
+  const byField = fieldErrors(error);
+
+  return known
+    .filter((name) => Array.isArray(byField[name]) && byField[name].length > 0)
+    .map((name) => ({ name, errors: byField[name] }));
+}
+
 /** Erreurs de validation renvoyées champ par champ par le backend. */
 export function fieldErrors(error: unknown): Record<string, string[]> {
   const apiError = toApiError(error);

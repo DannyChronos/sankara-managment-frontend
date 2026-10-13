@@ -444,6 +444,14 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: 'profile',
+        lazy: async () => {
+          const { ProfilePage } =
+            await import('../features/profile/pages/ProfilePage');
+          return { Component: ProfilePage };
+        },
+      },
+      {
         path: 'notifications',
         lazy: async () => {
           const { NotificationsPage } =

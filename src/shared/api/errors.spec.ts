@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { errorMessage, fieldErrors, toApiError } from './errors';
+import {
+  antdFieldErrors,
+  errorMessage,
+  fieldErrors,
+  toApiError,
+} from './errors';
 
 function apiError(
   code: string,
@@ -76,6 +81,26 @@ describe('traduction des erreurs de l’API', () => {
     const converted = toApiError(offline);
     expect(converted.code).toBe('NETWORK_ERROR');
     expect(converted.message).toMatch(/Serveur injoignable/);
+  });
+
+  it('pose les erreurs du serveur sous les champs du formulaire', () => {
+    const error = apiError(
+      'VALIDATION_FAILED',
+      'Les données envoyées sont invalides.',
+      400,
+      {
+        fields: {
+          currentPassword: ['Mot de passe actuel incorrect.'],
+          // Le serveur peut nommer un champ absent du formulaire : on
+          // l'écarte au lieu de le passer à Ant Design.
+          userId: ['Inconnu.'],
+        },
+      },
+    );
+
+    expect(antdFieldErrors(error, ['currentPassword', 'newPassword'])).toEqual([
+      { name: 'currentPassword', errors: ['Mot de passe actuel incorrect.'] },
+    ]);
   });
 
   it('expose les erreurs champ par champ', () => {
