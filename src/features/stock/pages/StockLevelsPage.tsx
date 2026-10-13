@@ -24,12 +24,15 @@ import type { StockLevelView } from '../../../shared/api/types';
 /** État du stock du site courant : physique, réservé, disponible (F-17). */
 export function StockLevelsPage() {
   const { siteId, currentSite } = useAuth();
-  // Une alerte « stock bas » pointe ici avec la variante concernée : on
-  // ouvre directement sur elle plutôt que sur tout le stock du site.
+  // L'écran s'ouvre déjà filtré quand on y arrive depuis ailleurs : une
+  // alerte « stock bas » passe la variante concernée, le tableau de bord
+  // passe `lowOnly`. On ne retombe pas sur tout le stock du site.
   const [searchParams, setSearchParams] = useSearchParams();
   const variantId = searchParams.get('variantId');
   const [q, setQ] = useState('');
-  const [lowOnly, setLowOnly] = useState(false);
+  const [lowOnly, setLowOnly] = useState(
+    searchParams.get('lowOnly') === 'true',
+  );
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<string | null>(null);
   const [threshold, setThreshold] = useState<number | null>(null);

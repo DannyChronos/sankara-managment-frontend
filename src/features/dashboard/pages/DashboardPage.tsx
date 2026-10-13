@@ -1,16 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Alert,
-  Card,
-  Col,
-  Empty,
-  Radio,
-  Row,
-  Statistic,
-  Table,
-  Tag,
-} from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
+import { Card, Col, Empty, Radio, Row, Table, Tag } from 'antd';
 import {
   BarChart,
   ErrorState,
@@ -19,8 +9,10 @@ import {
   PageSkeleton,
 } from '../../../shared/components';
 import { useAuth } from '../../../shared/auth/useAuth';
+import { usePermission } from '../../../shared/auth/usePermission';
 import { formatXof } from '../../../shared/utils/format';
 import { useDashboard } from '../hooks';
+import { StatCard } from '../components/StatCard';
 
 type Period = 'day' | 'week' | 'month';
 
@@ -33,6 +25,8 @@ const PERIOD_LABEL: Record<Period, string> = {
 export function DashboardPage() {
   const [period, setPeriod] = useState<Period>('day');
   const { currentSite } = useAuth();
+  const { can } = usePermission();
+  const navigate = useNavigate();
   const { data, isPending, isError, error, refetch } = useDashboard(period);
 
   if (isPending) return <PageSkeleton />;
@@ -43,6 +37,17 @@ export function DashboardPage() {
     label: point.day.slice(5),
     value: point.revenue,
   }));
+
+  // Un chiffre n'est utile que s'il mène à l'écran qui l'explique — encore
+  // faut-il que l'utilisateur ait le droit d'y entrer.
+  const stockLink = can('stock:read') ? '/stock?lowOnly=true' : undefined;
+  const sessionsLink = can('cash-sessions:verify')
+    ? '/cash-sessions/to-verify'
+    : can('cash-sessions:open')
+      ? '/cash-sessions'
+      : undefined;
+  const variantLink = (variantId: string) =>
+    can('stock:read') ? `/stock?variantId=${variantId}` : undefined;
 
   return (
     <>
@@ -66,65 +71,61 @@ export function DashboardPage() {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} xl={6}>
-          <Card>
-            <Statistic
-              title={`Chiffre d'affaires · ${PERIOD_LABEL[period]}`}
-              value={formatXof(data.revenue.selected.revenue)}
-            />
-          </Card>
+          <StatCard
+            title={`Chiffre d'affaires · ${PERIOD_LABEL[period]}`}
+            value={formatXof(data.revenue.selected.revenue)}
+            hint={`Mois en cours : ${formatXof(data.revenue.month.revenue)}`}
+            to="/reports"
+            linkLabel="Rapport des ventes"
+          />
         </Col>
         <Col xs={24} sm={12} xl={6}>
-          <Card>
-            <Statistic
-              title="Ventes"
-              value={data.revenue.selected.salesCount}
-              suffix={
-                <span style={{ fontSize: 13, color: '#8a98a8' }}>
-                  panier {formatXof(data.revenue.selected.averageBasket)}
-                </span>
-              }
-            />
-          </Card>
+          <StatCard
+            title="Ventes"
+            value={data.revenue.selected.salesCount}
+            hint={`Panier moyen ${formatXof(data.revenue.selected.averageBasket)}`}
+            to={can('sales:read') ? '/sales' : undefined}
+            linkLabel="Historique des ventes"
+          />
         </Col>
         <Col xs={24} sm={12} xl={6}>
-          <Card>
-            <Statistic
-              title="Caisses à vérifier"
-              value={data.sessionsToVerify.count}
-            />
-            {data.sessionsToVerify.count > 0 && (
-              <Link to="/cash-sessions/to-verify">Ouvrir la liste</Link>
-            )}
-          </Card>
+          <StatCard
+            title="Caisses à vérifier"
+            value={data.sessionsToVerify.count}
+            danger={data.sessionsToVerify.count > 0}
+            hint={
+              data.gaps.verifiedCount > 0
+                ? `${data.gaps.verifiedCount} vérifiée(s) ce mois, ${data.gaps.nonConformCount} non conforme(s)`
+                : 'Aucune vérification ce mois'
+            }
+            to={sessionsLink}
+            linkLabel={
+              can('cash-sessions:verify') ? 'Vérifier' : 'Voir les sessions'
+            }
+          />
         </Col>
         <Col xs={24} sm={12} xl={6}>
-          <Card>
-            <Statistic
-              title="Articles sous le seuil"
-              value={data.lowStock.count}
-              valueStyle={
-                data.lowStock.count > 0
-                  ? { color: 'var(--sankara-danger)' }
-                  : undefined
-              }
-            />
-          </Card>
+          <StatCard
+            title="Articles sous le seuil"
+            value={data.lowStock.count}
+            danger={data.lowStock.count > 0}
+            hint={
+              data.gaps.gapCount > 0
+                ? `${data.gaps.gapCount} écart(s) de caisse ce mois : ${formatXof(data.gaps.gapTotal)}`
+                : 'Aucun écart de caisse ce mois'
+            }
+            to={stockLink}
+            linkLabel="État du stock"
+          />
         </Col>
       </Row>
 
-      {data.gaps.gapCount > 0 && (
-        <Alert
-          type="warning"
-          showIcon
-          style={{ marginTop: 16 }}
-          message={`${data.gaps.gapCount} écart(s) de caisse ce mois, pour ${formatXof(data.gaps.gapTotal)}.`}
-          action={<Link to="/cash-sessions">Voir les sessions</Link>}
-        />
-      )}
-
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} xl={14}>
-          <Card title="Ventes des 30 derniers jours">
+          <Card
+            title="Ventes des 30 derniers jours"
+            extra={<Link to="/reports">Rapport détaillé</Link>}
+          >
             <BarChart data={trend} height={260} />
           </Card>
         </Col>
@@ -143,6 +144,16 @@ export function DashboardPage() {
                 pagination={false}
                 rowKey="variantId"
                 dataSource={data.topVariants}
+                // Ce qui se vend le mieux appelle une question : en reste-t-il ?
+                onRow={(row) => ({
+                  style: variantLink(row.variantId)
+                    ? { cursor: 'pointer' }
+                    : undefined,
+                  onClick: () => {
+                    const target = variantLink(row.variantId);
+                    if (target) void navigate(target);
+                  },
+                })}
                 columns={[
                   {
                     title: 'Article',
@@ -176,15 +187,30 @@ export function DashboardPage() {
 
       {data.lowStock.items.length > 0 && (
         <Card
-          title="Stock bas"
+          title={`Stock bas (${data.lowStock.count})`}
           style={{ marginTop: 16 }}
           styles={{ body: { padding: 0 } }}
+          extra={
+            stockLink &&
+            data.lowStock.count > data.lowStock.items.length && (
+              <Link to={stockLink}>Voir les {data.lowStock.count}</Link>
+            )
+          }
         >
           <Table
             size="small"
             pagination={false}
             rowKey="stockLevelId"
             dataSource={data.lowStock.items}
+            onRow={(row) => ({
+              style: variantLink(row.variantId)
+                ? { cursor: 'pointer' }
+                : undefined,
+              onClick: () => {
+                const target = variantLink(row.variantId);
+                if (target) void navigate(target);
+              },
+            })}
             columns={[
               { title: 'Site', dataIndex: 'siteCode', width: 80 },
               { title: 'SKU', dataIndex: 'sku', width: 190 },
