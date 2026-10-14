@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Card, DatePicker, Flex, Select, Table, Typography } from 'antd';
+import { Card, DatePicker, Flex, Select, Table, Tag, Typography } from 'antd';
 import type { Dayjs } from 'dayjs';
 import {
   ErrorState,
   PageHeader,
   PageSkeleton,
+  VariantPicker,
 } from '../../../shared/components';
 import { useAuth } from '../../../shared/auth/useAuth';
+import { usePermission } from '../../../shared/auth/usePermission';
+import { useUsers } from '../../users/hooks';
 import { formatDateTime } from '../../../shared/utils/format';
 import { useStockMovements } from '../hooks';
 import { MovementTypeTag } from '../components/MovementTypeTag';
@@ -19,15 +22,28 @@ import type { StockMovementView } from '../../../shared/api/types';
  */
 export function StockMovementsPage() {
   const { siteId, currentSite } = useAuth();
+  const { can } = usePermission();
   const [type, setType] = useState<string | undefined>();
+  const [variant, setVariant] = useState<{ id: string; label: string } | null>(
+    null,
+  );
+  const [performedById, setPerformedById] = useState<string | undefined>();
   const [range, setRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
   const [page, setPage] = useState(1);
+
+  // La liste des comptes n'est pas ouverte à tout le monde : un caissier lit
+  // le registre sans pouvoir lire l'annuaire. Le filtre ne lui est pas
+  // proposé plutôt que de lui montrer un champ qui échouerait.
+  const peutFiltrerParUtilisateur = can('users:read');
+  const users = useUsers({ limit: 100 }, peutFiltrerParUtilisateur);
 
   const movements = useStockMovements({
     page,
     limit: 20,
     ...(siteId ? { siteId } : {}),
     ...(type ? { type } : {}),
+    ...(variant ? { variantId: variant.id } : {}),
+    ...(performedById ? { performedById } : {}),
     ...(range?.[0] ? { from: range[0].format('YYYY-MM-DD') } : {}),
     ...(range?.[1] ? { to: range[1].format('YYYY-MM-DD') } : {}),
   });
@@ -56,7 +72,7 @@ export function StockMovementsPage() {
           une réécriture.
         </Typography.Paragraph>
 
-        <Flex gap={12} wrap style={{ marginBottom: 16 }}>
+        <Flex gap={12} wrap align="center" style={{ marginBottom: 16 }}>
           <Select
             allowClear
             placeholder="Tous les types"
@@ -68,6 +84,53 @@ export function StockMovementsPage() {
             }}
             options={MOVEMENT_OPTIONS}
           />
+
+          {variant ? (
+            <Tag
+              color="geekblue"
+              closable
+              onClose={() => {
+                setVariant(null);
+                setPage(1);
+              }}
+            >
+              {variant.label}
+            </Tag>
+          ) : (
+            <div style={{ minWidth: 280, flex: '1 1 280px' }}>
+              <VariantPicker
+                placeholder="Filtrer sur un article : nom, SKU ou code-barres"
+                onPick={(picked) => {
+                  setVariant({
+                    id: picked.id,
+                    label: `${picked.sku} · ${picked.name}`,
+                  });
+                  setPage(1);
+                }}
+              />
+            </div>
+          )}
+
+          {peutFiltrerParUtilisateur && (
+            <Select
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              placeholder="Tous les utilisateurs"
+              style={{ minWidth: 220 }}
+              value={performedById}
+              loading={users.isFetching}
+              onChange={(value?: string) => {
+                setPerformedById(value);
+                setPage(1);
+              }}
+              options={(users.data?.data ?? []).map((item) => ({
+                value: item.id,
+                label: item.fullName,
+              }))}
+            />
+          )}
+
           <DatePicker.RangePicker
             value={range}
             onChange={(values) => {
