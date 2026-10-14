@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { ConfigProvider } from 'antd';
 import frFR from 'antd/locale/fr_FR';
 import { DiscountInput } from './DiscountInput';
+import { CartPanel } from './CartPanel';
 
 /**
  * Le champ est contrôlé : sans réinjecter la valeur, chaque frappe
@@ -111,5 +112,47 @@ describe('remise d’une ligne', () => {
     expect(screen.getByText('%').closest('label')).toHaveClass(
       'ant-segmented-item-disabled',
     );
+  });
+});
+
+describe('remise dans le panier', () => {
+  it('calcule le pourcentage sur la ligne entière, pas sur le prix unitaire', async () => {
+    const user = userEvent.setup({ delay: null, pointerEventsCheck: 0 });
+    const onDiscount = vi.fn();
+
+    render(
+      <ConfigProvider locale={frFR}>
+        <CartPanel
+          lines={[
+            {
+              variantId: 'v1',
+              sku: 'MS-ORTHO-160200-25',
+              label: 'Matelas Ortho Confort — 160×200',
+              unitPrice: 185_000,
+              quantity: 3,
+              discount: 0,
+              available: 10,
+            },
+          ]}
+          subtotal={555_000}
+          discount={0}
+          total={555_000}
+          customerLabel={null}
+          onQuantity={vi.fn()}
+          onDiscount={onDiscount}
+          onRemove={vi.fn()}
+          onPickCustomer={vi.fn()}
+          onCheckout={vi.fn()}
+        />
+      </ConfigProvider>,
+    );
+
+    await user.click(screen.getByText('%'));
+    const remise = screen.getAllByRole('spinbutton').at(-1)!;
+    await user.clear(remise);
+    await user.type(remise, '10');
+
+    // 10 % de 555 000 — trois matelas — et non 10 % de 185 000.
+    expect(onDiscount).toHaveBeenLastCalledWith('v1', 55_500);
   });
 });
