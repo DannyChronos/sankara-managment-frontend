@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   Alert,
   Flex,
@@ -10,14 +11,20 @@ import {
   Typography,
 } from 'antd';
 import { MoneyInput } from '../../../shared/components';
+import { antdFieldErrors } from '../../../shared/api/errors';
 import { FIRMNESS_OPTIONS } from '../labels';
 import type { UpdateVariantPayload } from '../api';
 import type { Firmness, ProductVariantView } from '../../../shared/api/types';
+
+/** Champs que le serveur peut nommer dans une erreur de validation. */
+const CHAMPS = ['barcode', 'name'] as const;
 
 interface Props {
   variant: ProductVariantView;
   open: boolean;
   pending: boolean;
+  /** Dernier refus du serveur, pour le poser sous le champ fautif. */
+  error?: unknown;
   onCancel: () => void;
   onSubmit: (payload: UpdateVariantPayload) => void;
 }
@@ -35,12 +42,20 @@ export function VariantForm({
   variant,
   open,
   pending,
+  error,
   onCancel,
   onSubmit,
 }: Props) {
   const [form] = Form.useForm<
     Omit<UpdateVariantPayload, 'firmness'> & { firmness?: Firmness }
   >();
+
+  // « Ce code-barres est déjà utilisé » vaut mieux sous le champ qu'en
+  // bandeau : c'est là que l'utilisateur corrige.
+  useEffect(() => {
+    const champs = antdFieldErrors(error, CHAMPS);
+    if (champs.length > 0) form.setFields(champs);
+  }, [error, form]);
 
   return (
     <Modal

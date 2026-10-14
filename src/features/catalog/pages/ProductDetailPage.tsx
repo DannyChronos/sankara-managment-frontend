@@ -290,6 +290,7 @@ export function ProductDetailPage() {
           variant={editedVariant}
           open
           pending={updateVariant.isPending}
+          error={updateVariant.error}
           onCancel={() => setEditedVariant(null)}
           onSubmit={(payload) =>
             updateVariant.mutate(

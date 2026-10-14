@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
-import { errorMessage } from '../../shared/api/errors';
+import { antdFieldErrors, errorMessage } from '../../shared/api/errors';
 import {
   catalogApi,
   type CategoryPayload,
@@ -181,7 +181,13 @@ export function useUpdateVariant() {
       invalidateCatalog(queryClient);
       message.success(`Variante ${variant.sku} mise à jour.`);
     },
-    onError: (error) => message.error(errorMessage(error)),
+    // Quand le serveur désigne le champ fautif, le formulaire l'affiche
+    // lui-même : un bandeau en plus ne dirait rien de neuf.
+    onError: (error) => {
+      if (antdFieldErrors(error, ['barcode', 'name']).length === 0) {
+        message.error(errorMessage(error));
+      }
+    },
   });
 }
 
