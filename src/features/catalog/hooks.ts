@@ -7,6 +7,7 @@ import {
   type GenerateVariantsPayload,
   type ProductImagePayload,
   type ProductPayload,
+  type UpdateVariantPayload,
   type VariantPayload,
 } from './api';
 
@@ -159,6 +160,26 @@ export function useRemoveProductImage(productId: string) {
     onSuccess: () => {
       invalidateCatalog(queryClient);
       message.success('Photo supprimée.');
+    },
+    onError: (error) => message.error(errorMessage(error)),
+  });
+}
+
+export function useUpdateVariant() {
+  const queryClient = useQueryClient();
+  const { message } = App.useApp();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: UpdateVariantPayload;
+    }) => catalogApi.updateVariant(id, payload),
+    onSuccess: (variant) => {
+      invalidateCatalog(queryClient);
+      message.success(`Variante ${variant.sku} mise à jour.`);
     },
     onError: (error) => message.error(errorMessage(error)),
   });

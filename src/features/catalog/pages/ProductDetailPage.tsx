@@ -11,11 +11,13 @@ import {
   useCreateVariant,
   useGenerateVariants,
   useProduct,
+  useUpdateVariant,
   useUpdateProduct,
   useVariantStock,
 } from '../hooks';
 import { FIRMNESS_LABEL } from '../labels';
 import { ProductForm } from '../components/ProductForm';
+import { VariantForm } from '../components/VariantForm';
 import { VariantModal } from '../components/VariantModal';
 import { ProductPhotos } from '../components/ProductPhotos';
 import { PriceEditor } from '../components/PriceEditor';
@@ -28,9 +30,13 @@ export function ProductDetailPage() {
   const stock = useVariantStock(stockVariantId);
   const [editOpen, setEditOpen] = useState(false);
   const [variantOpen, setVariantOpen] = useState(false);
+  const [editedVariant, setEditedVariant] = useState<ProductVariantView | null>(
+    null,
+  );
   const update = useUpdateProduct();
   const createVariant = useCreateVariant(id);
   const generateVariants = useGenerateVariants(id);
+  const updateVariant = useUpdateVariant();
 
   if (isPending) return <PageSkeleton />;
   if (isError)
@@ -174,6 +180,15 @@ export function ProductDetailPage() {
                   }}
                   columns={[
                     { title: 'SKU', dataIndex: 'sku', width: 210 },
+                    {
+                      // C'est lui que lit la douchette : sans colonne, on ne
+                      // pouvait ni le vérifier ni le corriger.
+                      title: 'Code-barres',
+                      dataIndex: 'barcode',
+                      width: 160,
+                      render: (value: string | null) =>
+                        value ?? <span style={{ color: '#8a98a8' }}>—</span>,
+                    },
                     { title: 'Variante', dataIndex: 'name' },
                     {
                       title: 'Dimensions',
@@ -227,6 +242,21 @@ export function ProductDetailPage() {
                         />
                       ),
                     },
+                    {
+                      title: '',
+                      key: 'actions',
+                      width: 110,
+                      render: (_, row) => (
+                        <PermissionGate perm="catalog:manage">
+                          <Button
+                            size="small"
+                            onClick={() => setEditedVariant(row)}
+                          >
+                            Modifier
+                          </Button>
+                        </PermissionGate>
+                      ),
+                    },
                   ]}
                 />
               </Card>
@@ -250,6 +280,21 @@ export function ProductDetailPage() {
             update.mutate(
               { id, payload },
               { onSuccess: () => setEditOpen(false) },
+            )
+          }
+        />
+      )}
+
+      {editedVariant && (
+        <VariantForm
+          variant={editedVariant}
+          open
+          pending={updateVariant.isPending}
+          onCancel={() => setEditedVariant(null)}
+          onSubmit={(payload) =>
+            updateVariant.mutate(
+              { id: editedVariant.id, payload },
+              { onSuccess: () => setEditedVariant(null) },
             )
           }
         />

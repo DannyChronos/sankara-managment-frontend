@@ -47,6 +47,23 @@ export interface VariantPayload {
   price?: number;
 }
 
+/**
+ * Modification d'une variante. Le SKU n'y figure pas : il identifie
+ * l'article sur les tickets et dans l'historique des ventes, le laisser
+ * changer ferait diverger une variante de son passé.
+ */
+export interface UpdateVariantPayload {
+  barcode?: string;
+  name?: string;
+  widthCm?: number;
+  lengthCm?: number;
+  thicknessCm?: number;
+  densityKgM3?: number;
+  firmness?: Firmness;
+  costPrice?: number;
+  isActive?: boolean;
+}
+
 export interface GenerateVariantsResult {
   created: ProductVariantView[];
   skipped: number;
@@ -94,6 +111,9 @@ export const catalogApi = {
       `/catalog/products/${productId}/variants/generate`,
       payload,
     ),
+
+  updateVariant: (variantId: string, payload: UpdateVariantPayload) =>
+    api.patch<ProductVariantView>(`/catalog/variants/${variantId}`, payload),
 
   setPrice: (variantId: string, channel: 'POS' | 'WEB', amount: number) =>
     api.put<unknown>(`/catalog/variants/${variantId}/prices`, {
