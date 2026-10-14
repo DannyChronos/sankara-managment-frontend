@@ -1,6 +1,7 @@
 import { Button, Divider, Empty, Flex, InputNumber, Typography } from 'antd';
 import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Money } from '../../../shared/components';
+import { DiscountInput } from './DiscountInput';
 import type { CartLine } from '../store/cart.store';
 
 interface Props {
@@ -108,14 +109,10 @@ export function CartPanel({
 
               <Flex align="center" gap={6} style={{ marginTop: 6 }}>
                 <span style={{ fontSize: 12, color: '#8a98a8' }}>Remise</span>
-                <InputNumber
-                  size="small"
-                  min={0}
-                  precision={0}
-                  style={{ width: 110 }}
+                <DiscountInput
+                  lineTotal={line.unitPrice * line.quantity}
                   value={line.discount}
-                  onChange={(value) => onDiscount(line.variantId, value ?? 0)}
-                  addonAfter="F"
+                  onChange={(discount) => onDiscount(line.variantId, discount)}
                 />
                 {line.quantity > line.available && (
                   <Typography.Text type="danger" style={{ fontSize: 12 }}>
