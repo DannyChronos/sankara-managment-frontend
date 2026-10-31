@@ -183,6 +183,13 @@ export const navigation: NavSection[] = [
         hint: 'Toutes les ventes, avec annulations et retours.',
       },
       {
+        key: 'einvoices',
+        label: 'Factures normalisées',
+        path: '/einvoices',
+        perm: 'einvoice:read',
+        hint: 'Ce que la DGI a reçu et répondu, facture par facture.',
+      },
+      {
         key: 'customers',
         label: 'Clients',
         path: '/customers',
@@ -239,6 +246,13 @@ export const navigation: NavSection[] = [
         path: '/settings',
         perm: 'settings:manage',
         hint: 'Tolérance de caisse, plafond de remise, seuils de stock.',
+      },
+      {
+        key: 'fiscal',
+        label: 'Fiscalité',
+        path: '/settings/fiscal',
+        perm: 'fiscal:manage',
+        hint: 'Profil fiscal, jeton e-MECeF et mode d’émission des factures normalisées.',
       },
       {
         key: 'audit',

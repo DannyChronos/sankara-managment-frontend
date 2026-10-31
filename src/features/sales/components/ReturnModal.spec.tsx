@@ -24,6 +24,9 @@ const order: Order = {
   cancelledAt: null,
   cancelReason: null,
   createdAt: '2026-10-13T09:00:00.000Z',
+  invoiceRequested: false,
+  einvoiceStatus: 'NOT_REQUESTED' as const,
+  buyer: null,
   lines: [
     {
       id: 'l1',
@@ -35,6 +38,7 @@ const order: Order = {
       discount: 0,
       lineTotal: 300000,
       returnedQty: 1,
+      taxGroup: 'B' as const,
     },
     {
       id: 'l2',
@@ -46,13 +50,14 @@ const order: Order = {
       discount: 0,
       lineTotal: 100000,
       returnedQty: 1,
+      taxGroup: 'B' as const,
     },
   ],
   payments: [],
   receiptUrl: '/api/v1/sales/o1/receipt',
 };
 
-function renderModal() {
+function renderModal(normalized = false) {
   const onSubmit = vi.fn();
 
   render(
@@ -62,6 +67,7 @@ function renderModal() {
           order={order}
           open
           pending={false}
+          normalized={normalized}
           onCancel={vi.fn()}
           onSubmit={onSubmit}
         />
@@ -155,5 +161,39 @@ describe('retour sur une vente', () => {
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({ restock: false }),
     );
+  });
+  describe('vente portant une facture normalisée', () => {
+    it('annonce l’avoir qui partira à la DGI, montant compris', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderModal(true);
+
+      const quantity = screen.getByRole('spinbutton');
+      await user.clear(quantity);
+      await user.type(quantity, '1');
+
+      const alert = screen.getByText(/facture d’avoir normalisée/);
+      expect(alert.textContent?.replace(/\s/g, ' ')).toMatch(/150 000 FCFA/);
+    });
+
+    it('n’en parle pas avant qu’un article soit choisi', () => {
+      renderModal(true);
+
+      expect(
+        screen.queryByText(/facture d’avoir normalisée/),
+      ).not.toBeInTheDocument();
+    });
+
+    it('ne promet aucun avoir sur une vente non facturée', async () => {
+      const user = userEvent.setup({ delay: null });
+      renderModal();
+
+      const quantity = screen.getByRole('spinbutton');
+      await user.clear(quantity);
+      await user.type(quantity, '1');
+
+      expect(
+        screen.queryByText(/facture d’avoir normalisée/),
+      ).not.toBeInTheDocument();
+    });
   });
 });

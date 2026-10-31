@@ -142,6 +142,8 @@ export interface OrderLine {
   discount: number;
   lineTotal: number;
   returnedQty: number;
+  /** Groupe de taxation figé au moment de la vente (§B7.3). */
+  taxGroup: TaxGroup;
 }
 
 export interface OrderPayment {
@@ -173,6 +175,10 @@ export interface Order {
   cancelledAt: string | null;
   cancelReason: string | null;
   createdAt: string;
+  /** Le client a-t-il demandé une facture normalisée ? */
+  invoiceRequested: boolean;
+  einvoiceStatus: EinvoiceStatus;
+  buyer: { name: string | null; ifu: string | null } | null;
   lines: OrderLine[];
   payments: OrderPayment[];
   receiptUrl: string;
@@ -226,6 +232,9 @@ export interface Dashboard {
 export interface Customer {
   id: string;
   fullName: string;
+  /** Renseignée pour une entreprise : c'est elle qui figure sur la facture. */
+  companyName: string | null;
+  ifu: string | null;
   phone: string | null;
   email: string | null;
   address: string | null;
@@ -277,6 +286,8 @@ export interface ProductListItem {
   name: string;
   slug: string;
   brand: string | null;
+  /** Imprimé sur la facture normalisée (§B7.3). */
+  taxGroup: TaxGroup;
   warrantyMonths: number | null;
   isActive: boolean;
   isPublishedOnline: boolean;
@@ -484,7 +495,13 @@ export interface Site {
   isActive: boolean;
 }
 
-export type ReportType = 'sales' | 'stock' | 'movements' | 'cash-sessions';
+export type ReportType =
+  | 'sales'
+  | 'stock'
+  | 'movements'
+  | 'cash-sessions'
+  /** Factures normalisées, pour le rapprochement avec le portail de la DGI. */
+  | 'einvoices';
 export type ExportFormat = 'xlsx' | 'pdf';
 
 export interface ReportColumn {
@@ -593,4 +610,191 @@ export interface NotificationPage {
 /** Arborescence : `children` n'est présent que si on l'a demandée en arbre. */
 export interface CategoryNode extends Category {
   children?: CategoryNode[];
+}
+
+// ──────────────────── facture normalisée e-MECeF (DGI) ───────────────────
+//
+// Comme les vues ci-dessus, ces types sont écrits à la main : les
+// contrôleurs de la facture normalisée renvoient des objets sans DTO de
+// sortie, `schema.d.ts` ne les décrit donc pas. Ils suivent exactement les
+// présentateurs du backend (`FiscalProfileService.present`,
+// `NormalizedInvoicesService.present`, `forOrder`, `EmecefStatusService`).
+
+export type UpdateFiscalProfile =
+  components['schemas']['UpdateFiscalProfileDto'];
+export type SetEmecefTokenPayload = components['schemas']['SetEmecefTokenDto'];
+export type SetInvoiceModePayload = components['schemas']['SetInvoiceModeDto'];
+export type SetEnvironmentPayload = components['schemas']['SetEnvironmentDto'];
+/** Acheteur d'une facture normalisée : tout est facultatif (§B7.2). */
+export type EinvoiceBuyer = components['schemas']['BuyerDto'];
+
+/** Groupes complets : la saisie n'en propose que trois, l'affichage les connaît tous. */
+export type TaxGroup = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+export type TaxRegime = UpdateFiscalProfile['taxRegime'];
+export type InvoiceMode = SetInvoiceModePayload['mode'];
+export type EmecefEnv = SetEmecefTokenPayload['env'];
+/** Statut porté par la vente — ce que le caissier voit. */
+export type EinvoiceStatus =
+  'NOT_REQUESTED' | 'PENDING' | 'CONFIRMED' | 'REJECTED';
+/** Statut de la facture elle-même — ce que le journal suit. */
+export type NormalizedInvoiceStatus =
+  'PENDING' | 'SUBMITTED' | 'CONFIRMED' | 'REJECTED' | 'EXPIRED';
+export type NormalizedInvoiceKind = 'SALE' | 'CREDIT_NOTE';
+
+export interface FiscalProfile {
+  legalName: string;
+  tradeName: string | null;
+  ifu: string;
+  rccm: string | null;
+  fiscalAddress: string;
+  fiscalPhone: string;
+  fiscalEmail: string | null;
+  taxRegime: TaxRegime;
+  invoiceMode: InvoiceMode;
+  onDemandAckAt: string | null;
+  onDemandAckById: string | null;
+  emecefEnv: EmecefEnv;
+  /** Les 4 derniers caractères du jeton : il n'est jamais renvoyé entier. */
+  tokenLast4: string | null;
+  tokenExpiresAt: string | null;
+  verifiedAt: string | null;
+  nim: string | null;
+  receiptFooter: string | null;
+  updatedAt: string;
+}
+
+export interface FiscalProfileSaved {
+  profile: FiscalProfile;
+  /** Produits concernés par un changement de régime, s'il a eu lieu. */
+  productsToSwitch: number;
+  productsSwitched: number;
+  /** Changer l'IFU périme le jeton : la vérification a été retirée. */
+  verificationCleared: boolean;
+  /** …et la facturation a été coupée si elle était active. */
+  invoiceModeReset: boolean;
+}
+
+/** Réponse du test du jeton (`PUT /fiscal/emecef-token`, `POST …/test`). */
+export interface EmecefTokenCheck {
+  valid: boolean;
+  ifu: string;
+  nim: string | null;
+  tokenValid: string | null;
+  serverDateTime: string | null;
+  tokenLast4: string | null;
+}
+
+export interface EmecefLiveStatus {
+  configured: boolean;
+  env: EmecefEnv | null;
+  invoiceMode: InvoiceMode | null;
+  tokenLast4: string | null;
+  tokenValidUntil: string | null;
+  verifiedAt: string | null;
+  nim: string | null;
+  reachable: boolean;
+  serverDateTime?: string | null;
+  /** Factures en attente chez la DGI ; `null` si elle est injoignable. */
+  dgiPendingCount: number | null;
+  localPending: number;
+  localRetrying: number;
+  rejected: number;
+  queuePaused: boolean;
+  checkedAt: string;
+  error?: string;
+}
+
+/** Récapitulatif par groupe renvoyé par la DGI (`ta`…`tf`, `vta`…). */
+export type DgiTotals = Record<string, unknown>;
+
+export interface NormalizedInvoice {
+  id: string;
+  kind: NormalizedInvoiceKind;
+  status: NormalizedInvoiceStatus;
+  env: EmecefEnv;
+  orderId: string;
+  orderReturnId: string | null;
+  originalInvoiceId: string | null;
+  sellerIfu: string;
+  operator: { code: string; name: string };
+  buyerName: string | null;
+  buyerIfu: string | null;
+  /** Ce que la vente a encaissé : la facture ne doit jamais s'en écarter. */
+  expectedTotal: number;
+  dgiUid: string | null;
+  dgiTotal: number | null;
+  dgiTotals: DgiTotals | null;
+  mecefCode: string | null;
+  nim: string | null;
+  counters: string | null;
+  qrCode: string | null;
+  dgiDateTime: string | null;
+  submittedAt: string | null;
+  confirmedAt: string | null;
+  requestedAfterSale: boolean;
+  attemptCount: number;
+  nextAttemptAt: string | null;
+  lastError: string | null;
+  rejectionCode: string | null;
+  rejectionReason: string | null;
+  createdAt: string;
+}
+
+/** Ligne du journal : la facture, plus sa vente et son nombre d'appels. */
+export interface NormalizedInvoiceRow extends NormalizedInvoice {
+  order: { id: string; number: string; siteId: string; createdAt: string };
+  attempts: number;
+}
+
+export interface NormalizedInvoiceDetail extends NormalizedInvoice {
+  order: {
+    id: string;
+    number: string;
+    siteId: string;
+    total: number;
+    createdAt: string;
+  };
+  orderReturn: { id: string; number: string; refundAmount: number } | null;
+  originalInvoice: {
+    id: string;
+    mecefCode: string | null;
+    dgiDateTime: string | null;
+  } | null;
+  creditNotes: NormalizedInvoice[];
+  /** Corps figé envoyé à la DGI, tel quel. */
+  requestPayload: unknown;
+}
+
+export type EinvoiceStep =
+  'SUBMIT' | 'CONFIRM' | 'CANCEL' | 'STATUS' | 'TOKEN_CHECK';
+
+export interface EinvoiceAttempt {
+  id: string;
+  step: EinvoiceStep;
+  httpStatus: number | null;
+  errorCode: string | null;
+  durationMs: number | null;
+  error: string | null;
+  response: unknown;
+  createdAt: string;
+}
+
+/** `GET /sales/:id/einvoice` — ce que la caisse interroge après l'encaissement. */
+/** Compte des factures du jour : carte du tableau de bord (§10). */
+export interface EinvoiceDailySummary {
+  day: string;
+  total: number;
+  confirmed: number;
+  rejected: number;
+  pending: number;
+  confirmedTotal: number;
+}
+
+export interface SaleEinvoice {
+  status: EinvoiceStatus;
+  invoiceRequested: boolean;
+  kind: NormalizedInvoiceKind | null;
+  invoice: NormalizedInvoice | null;
+  creditNotes: NormalizedInvoice[];
+  receiptUrl: string;
 }

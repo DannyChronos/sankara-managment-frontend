@@ -15,4 +15,13 @@ export const qk = {
   session: (id: string) => ['cash-sessions', id] as const,
   sales: (filters?: object) => ['sales', filters] as const,
   notifications: () => ['notifications'] as const,
+
+  // Facture normalisée e-MECeF (FRONTEND-FACTURE §3.4).
+  fiscalProfile: () => ['fiscal', 'profile'] as const,
+  emecefStatus: () => ['fiscal', 'emecef-status'] as const,
+  saleEinvoice: (orderId: string) => ['sales', orderId, 'einvoice'] as const,
+  einvoices: (filters?: object) => ['einvoices', filters] as const,
+  einvoice: (id: string) => ['einvoices', id] as const,
+  einvoiceAttempts: (id: string) => ['einvoices', id, 'attempts'] as const,
+  einvoiceDailySummary: () => ['einvoices', 'daily-summary'] as const,
 };

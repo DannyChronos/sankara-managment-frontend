@@ -7,6 +7,10 @@ import type {
 
 export interface CustomerPayload {
   fullName: string;
+  /** Entreprise : raison sociale portée sur la facture normalisée. */
+  companyName?: string;
+  /** Entreprise assujettie : 13 chiffres, sans espaces. */
+  ifu?: string;
   phone?: string;
   email?: string;
   address?: string;

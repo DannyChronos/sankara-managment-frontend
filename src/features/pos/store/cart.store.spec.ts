@@ -97,6 +97,55 @@ describe('panier du point de vente', () => {
     expect(second).not.toBe(first);
   });
 
+  describe('facture normalisée', () => {
+    it('ne demande rien par défaut', () => {
+      const state = useCartStore.getState();
+
+      expect(state.invoiceRequested).toBe(false);
+      expect(state.buyer).toEqual({});
+    });
+
+    it('préremplit l’acheteur quand le client est une entreprise', () => {
+      useCartStore.getState().setCustomer('client-2', 'Sonacop SA', {
+        name: 'Sonacop SA',
+        ifu: '3201912345678',
+      });
+
+      expect(useCartStore.getState().buyer).toEqual({
+        name: 'Sonacop SA',
+        ifu: '3201912345678',
+      });
+    });
+
+    it('garde l’acheteur saisi à la main si le client n’en apporte pas', () => {
+      // Le caissier a tapé la raison sociale avant de rattacher la fiche
+      // client : son travail ne doit pas disparaître.
+      useCartStore.getState().setBuyer({ name: 'Sonacop SA' });
+      useCartStore.getState().setCustomer('client-3', 'Afi Kodjo');
+
+      expect(useCartStore.getState().buyer).toEqual({ name: 'Sonacop SA' });
+    });
+
+    it('oublie l’acheteur quand le client est détaché', () => {
+      useCartStore
+        .getState()
+        .setCustomer('client-2', 'Sonacop SA', { name: 'Sonacop SA' });
+      useCartStore.getState().setCustomer(null, null);
+
+      expect(useCartStore.getState().buyer).toEqual({});
+    });
+
+    it('change de clé d’idempotence : la vente n’est plus la même', () => {
+      const cart = useCartStore.getState();
+      cart.add(matelas);
+      const first = useCartStore.getState().startAttempt();
+
+      useCartStore.getState().setInvoiceRequested(true);
+
+      expect(useCartStore.getState().startAttempt()).not.toBe(first);
+    });
+  });
+
   it('repart à zéro après une vente', () => {
     const cart = useCartStore.getState();
     cart.add(matelas);
@@ -109,5 +158,7 @@ describe('panier du point de vente', () => {
     expect(state.lines).toHaveLength(0);
     expect(state.customerId).toBeNull();
     expect(state.idempotencyKey).toBeNull();
+    expect(state.invoiceRequested).toBe(false);
+    expect(state.buyer).toEqual({});
   });
 });

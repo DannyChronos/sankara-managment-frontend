@@ -12,6 +12,7 @@ import {
 } from 'antd';
 import { Money } from '../../../shared/components';
 import { paymentMethodLabel } from '../../../shared/constants/labels';
+import { formatXof } from '../../../shared/utils/format';
 import type {
   CreateReturnPayload,
   Order,
@@ -22,6 +23,8 @@ interface Props {
   order: Order;
   open: boolean;
   pending: boolean;
+  /** Vrai si la vente porte une facture normalisée confirmée (§7.3). */
+  normalized?: boolean;
   onCancel: () => void;
   onSubmit: (payload: CreateReturnPayload) => void;
 }
@@ -45,6 +48,7 @@ export function ReturnModal({
   order,
   open,
   pending,
+  normalized,
   onCancel,
   onSubmit,
 }: Props) {
@@ -100,6 +104,18 @@ export function ReturnModal({
         message="Le remboursement sort de votre caisse"
         description="Il est porté par votre session ouverte, pas par celle de la vente d’origine. Vous devez donc avoir une caisse ouverte."
       />
+
+      {/* Un retour sur vente normalisée oblige à émettre un avoir : la DGI
+          n'efface pas une facture, elle la contrebalance. */}
+      {normalized && picked.length > 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={`Une facture d’avoir normalisée de ${formatXof(refund)} sera émise.`}
+          description="Elle référence la facture d’origine et part automatiquement à la DGI."
+        />
+      )}
 
       <Table<Draft>
         rowKey="orderLineId"

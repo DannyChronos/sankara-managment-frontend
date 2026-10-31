@@ -15,7 +15,7 @@ import { AppBrand } from './AppBrand';
 import { AppMenu } from './AppMenu';
 import { AppSidebar } from './AppSidebar';
 import { SiteSelect } from './SiteSelect';
-import { OfflineBanner } from '../shared/components';
+import { OfflineBanner, TestModeBanner } from '../shared/components';
 import { NotificationBell } from '../features/notifications/components/NotificationBell';
 import { useAuth } from '../shared/auth/useAuth';
 import { useLogout } from '../features/auth/hooks';
@@ -104,6 +104,7 @@ export function AppLayout() {
         </Layout.Header>
 
         <OfflineBanner />
+        <TestModeBanner />
 
         <Layout.Content style={{ padding: 24 }}>
           <Outlet />

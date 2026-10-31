@@ -480,6 +480,48 @@ export const router = createBrowserRouter([
         },
       },
       {
+        path: 'einvoices',
+        lazy: async () => {
+          const { EinvoicesPage } =
+            await import('../features/einvoices/pages/EinvoicesPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="einvoice:read">
+                <EinvoicesPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'einvoices/:id',
+        lazy: async () => {
+          const { EinvoiceDetailPage } =
+            await import('../features/einvoices/pages/EinvoiceDetailPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="einvoice:read">
+                <EinvoiceDetailPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
+        path: 'settings/fiscal',
+        lazy: async () => {
+          const { FiscalSettingsPage } =
+            await import('../features/fiscal/pages/FiscalSettingsPage');
+          return {
+            Component: () => (
+              <RequirePermission perm="fiscal:manage">
+                <FiscalSettingsPage />
+              </RequirePermission>
+            ),
+          };
+        },
+      },
+      {
         path: 'settings',
         lazy: async () => {
           const { SettingsPage } =

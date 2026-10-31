@@ -2,7 +2,14 @@ import { Button, Divider, Empty, Flex, InputNumber, Typography } from 'antd';
 import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Money } from '../../../shared/components';
 import { DiscountInput } from './DiscountInput';
+import { InvoiceToggle } from './InvoiceToggle';
+import { buyerIfuError } from '../../../shared/utils/ifu';
 import type { CartLine } from '../store/cart.store';
+import type {
+  EinvoiceBuyer,
+  EmecefEnv,
+  InvoiceMode,
+} from '../../../shared/api/types';
 
 interface Props {
   lines: CartLine[];
@@ -10,6 +17,13 @@ interface Props {
   discount: number;
   total: number;
   customerLabel: string | null;
+  /** Facturation normalisée : désactivée, systématique ou à la demande. */
+  invoiceMode: InvoiceMode;
+  emecefEnv: EmecefEnv;
+  invoiceRequested: boolean;
+  buyer: EinvoiceBuyer;
+  onInvoiceRequestedChange: (requested: boolean) => void;
+  onBuyerChange: (buyer: EinvoiceBuyer) => void;
   onQuantity: (variantId: string, quantity: number) => void;
   onDiscount: (variantId: string, discount: number) => void;
   onRemove: (variantId: string) => void;
@@ -23,6 +37,12 @@ export function CartPanel({
   discount,
   total,
   customerLabel,
+  invoiceMode,
+  emecefEnv,
+  invoiceRequested,
+  buyer,
+  onInvoiceRequestedChange,
+  onBuyerChange,
   onQuantity,
   onDiscount,
   onRemove,
@@ -153,12 +173,23 @@ export function CartPanel({
         {customerLabel ?? 'Client (facultatif) · F4'}
       </Button>
 
+      <InvoiceToggle
+        mode={invoiceMode}
+        env={emecefEnv}
+        requested={invoiceRequested}
+        buyer={buyer}
+        onRequestedChange={onInvoiceRequestedChange}
+        onBuyerChange={onBuyerChange}
+      />
+
       <Button
         type="primary"
         size="large"
         block
         style={{ marginTop: 8, height: 54, fontSize: 18 }}
-        disabled={lines.length === 0}
+        // Un IFU mal formé bloque l'encaissement : la DGI refuserait la
+        // facture, et le client serait déjà parti.
+        disabled={lines.length === 0 || buyerIfuError(buyer) !== null}
         onClick={onCheckout}
       >
         ENCAISSER (F9)

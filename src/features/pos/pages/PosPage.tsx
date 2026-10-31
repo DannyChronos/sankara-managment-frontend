@@ -7,8 +7,11 @@ import { errorMessage, toApiError } from '../../../shared/api/errors';
 import { useAuth } from '../../../shared/auth/useAuth';
 import { useBarcodeScanner } from '../../../shared/hooks/useBarcodeScanner';
 import { useCurrentSession } from '../../cash-sessions/hooks';
+import { usePosFiscalContext } from '../../fiscal/hooks';
+import { useSaleEinvoice } from '../../sales/hooks';
 import type { Customer, SalePayment } from '../../../shared/api/types';
 import { posApi } from '../api';
+import { buildSalePayload } from '../sale-payload';
 import { useCreateSale, useVariantSearch } from '../hooks';
 import {
   cartDiscount,
@@ -21,6 +24,7 @@ import { VariantGrid } from '../components/VariantGrid';
 import { CartPanel } from '../components/CartPanel';
 import { PaymentModal } from '../components/PaymentModal';
 import { CustomerModal } from '../components/CustomerModal';
+import { EinvoiceWaitModal } from '../components/EinvoiceWaitModal';
 
 export function PosPage() {
   const { message } = App.useApp();
@@ -34,12 +38,26 @@ export function PosPage() {
   // Le ticket se rouvre après coup : la dernière vente vit dans le panier
   // persistant, elle survit donc aussi à un rechargement.
   const [receiptOpen, setReceiptOpen] = useState(false);
+  // Vente dont on attend la facture : la fenêtre d'attente lui est propre et
+  // ne doit pas se rouvrir sur un simple rendu.
+  const [waitingFor, setWaitingFor] = useState<string | null>(null);
+  const [waitDeadlinePassed, setWaitDeadlinePassed] = useState(false);
   const searchRef = useRef<InputRef>(null);
 
   const cart = useCartStore();
   const lastSale = cart.lastSale;
   const search = useVariantSearch(term);
   const createSale = useCreateSale();
+
+  const fiscal = usePosFiscalContext();
+  const invoiceMode = fiscal.data?.invoiceMode ?? 'DISABLED';
+  const emecefEnv = fiscal.data?.env ?? 'TEST';
+  // Interrogation rapide tant que le caissier attend ; dès qu'il a pris le
+  // reçu provisoire, on repasse au rythme lent.
+  const einvoice = useSaleEinvoice(
+    waitingFor ?? undefined,
+    Boolean(waitingFor) && !waitDeadlinePassed,
+  );
 
   const lines = cart.lines;
   const total = cartTotal(lines);
@@ -71,6 +89,18 @@ export function PosPage() {
 
   useBarcodeScanner(onScan);
 
+  /**
+   * Dix secondes, pas plus (§6.4) : au-delà, la caisse propose un reçu
+   * provisoire. Faire patienter un client devant une file parce qu'une
+   * administration est lente n'est pas une option.
+   */
+  useEffect(() => {
+    if (!waitingFor || waitDeadlinePassed) return;
+
+    const timer = setTimeout(() => setWaitDeadlinePassed(true), 10_000);
+    return () => clearTimeout(timer);
+  }, [waitingFor, waitDeadlinePassed]);
+
   // Raccourcis clavier du comptoir (FRONTEND.md §9.3).
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -81,6 +111,12 @@ export function PosPage() {
       if (event.key === 'F4') {
         event.preventDefault();
         setCustomerOpen(true);
+      }
+      // F6 : facture normalisée, en mode « à la demande » seulement — en
+      // mode systématique il n'y a rien à basculer.
+      if (event.key === 'F6' && invoiceMode === 'ON_DEMAND') {
+        event.preventDefault();
+        cart.setInvoiceRequested(!cart.invoiceRequested);
       }
       if (event.key === 'F9' && lines.length > 0) {
         event.preventDefault();
@@ -100,7 +136,7 @@ export function PosPage() {
 
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [cart, lines.length]);
+  }, [cart, lines.length, invoiceMode]);
 
   if (session.isPending) return null;
 
@@ -128,15 +164,14 @@ export function PosPage() {
 
     createSale.mutate(
       {
-        payload: {
-          lines: lines.map((line) => ({
-            variantId: line.variantId,
-            quantity: line.quantity,
-            ...(line.discount > 0 ? { discount: line.discount } : {}),
-          })),
+        payload: buildSalePayload({
+          lines,
           payments,
-          ...(cart.customerId ? { customerId: cart.customerId } : {}),
-        },
+          customerId: cart.customerId,
+          mode: invoiceMode,
+          invoiceRequested: cart.invoiceRequested,
+          buyer: cart.buyer,
+        }),
         idempotencyKey,
       },
       {
@@ -144,7 +179,16 @@ export function PosPage() {
           setPaymentOpen(false);
           setFailure(null);
           cart.setLastSale(order);
-          setReceiptOpen(true);
+
+          // Le panier est vidé avant la réponse de la DGI : le caissier peut
+          // commencer la vente suivante pendant que la facture se fabrique.
+          if (order.einvoiceStatus === 'PENDING') {
+            setWaitingFor(order.id);
+            setWaitDeadlinePassed(false);
+          } else {
+            setReceiptOpen(true);
+          }
+
           cart.clear();
           setTerm('');
           searchRef.current?.focus();
@@ -210,6 +254,12 @@ export function PosPage() {
             discount={cartDiscount(lines)}
             total={total}
             customerLabel={cart.customerLabel}
+            invoiceMode={invoiceMode}
+            emecefEnv={emecefEnv}
+            invoiceRequested={cart.invoiceRequested}
+            buyer={cart.buyer}
+            onInvoiceRequestedChange={cart.setInvoiceRequested}
+            onBuyerChange={cart.setBuyer}
             onQuantity={cart.setQuantity}
             onDiscount={cart.setDiscount}
             onRemove={cart.remove}
@@ -225,6 +275,11 @@ export function PosPage() {
         total={total}
         pending={createSale.isPending}
         failure={failure}
+        invoiceNotice={invoiceNotice(
+          invoiceMode,
+          cart.invoiceRequested,
+          cart.buyer.name,
+        )}
         onCancel={() => {
           setPaymentOpen(false);
           setFailure(null);
@@ -236,10 +291,42 @@ export function PosPage() {
         open={customerOpen}
         onCancel={() => setCustomerOpen(false)}
         onPick={(customer: Customer | null) => {
-          cart.setCustomer(customer?.id ?? null, customer?.fullName ?? null);
+          // Un client entreprise préremplit l'acheteur de la facture : sa
+          // raison sociale et son IFU sont déjà connus (§6.2). Les champs
+          // restent modifiables pour cette vente.
+          cart.setCustomer(
+            customer?.id ?? null,
+            customer?.fullName ?? null,
+            customer
+              ? {
+                  ...(customer.companyName || customer.fullName
+                    ? { name: customer.companyName ?? customer.fullName }
+                    : {}),
+                  ...(customer.ifu ? { ifu: customer.ifu } : {}),
+                }
+              : {},
+          );
           setCustomerOpen(false);
         }}
       />
+
+      {lastSale && waitingFor === lastSale.id && (
+        <EinvoiceWaitModal
+          open
+          sale={lastSale}
+          einvoice={einvoice.data}
+          timedOut={waitDeadlinePassed}
+          onWaitMore={() => {
+            setWaitDeadlinePassed(false);
+            void einvoice.refetch();
+          }}
+          onClose={() => {
+            setWaitingFor(null);
+            setWaitDeadlinePassed(false);
+            searchRef.current?.focus();
+          }}
+        />
+      )}
 
       <Modal
         open={receiptOpen && Boolean(lastSale)}
@@ -277,6 +364,19 @@ export function PosPage() {
       </Modal>
     </>
   );
+}
+
+/** Ce que la fenêtre d'encaissement rappelle au caissier (§6.3). */
+function invoiceNotice(
+  mode: string,
+  requested: boolean,
+  buyerName?: string,
+): string | null {
+  const invoiced = mode === 'ALWAYS' || (mode === 'ON_DEMAND' && requested);
+  if (!invoiced) return null;
+  return buyerName?.trim()
+    ? `Facture normalisée · ${buyerName.trim()}`
+    : 'Facture normalisée';
 }
 
 function PosHeader({

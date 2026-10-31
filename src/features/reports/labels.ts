@@ -1,7 +1,7 @@
 import type { ReportType } from '../../shared/api/types';
 
 /**
- * Les quatre rapports de la V1. Chacun lit les mêmes données que les écrans
+ * Les rapports disponibles. Chacun lit les mêmes données que les écrans
  * correspondants : un rapport ne recalcule rien, il regroupe.
  */
 export const REPORTS: { type: ReportType; label: string; hint: string }[] = [
@@ -25,6 +25,11 @@ export const REPORTS: { type: ReportType; label: string; hint: string }[] = [
     label: 'Caisses',
     hint: 'Sessions, montants déclarés et écarts constatés.',
   },
+  {
+    type: 'einvoices',
+    label: 'Factures normalisées',
+    hint: 'Une ligne par facture, avec le code MECeF : le rapprochement avec le portail de la DGI.',
+  },
 ];
 
 /** Rapports dont la période a un sens — l'état du stock, lui, est instantané. */
@@ -32,6 +37,7 @@ export const PERIODIC_REPORTS: ReportType[] = [
   'sales',
   'movements',
   'cash-sessions',
+  'einvoices',
 ];
 
 /** Rapports qui se filtrent par caissier. */

@@ -21,6 +21,17 @@ export const NOTIFICATION_TYPES: Record<
   'transfer.shipped': { label: 'Transfert en route', color: 'processing' },
   'report.export-ready': { label: 'Export prêt', color: 'success' },
   'report.daily': { label: 'Rapport journalier', color: 'default' },
+
+  // Facture normalisée e-MECeF (§10).
+  'einvoice.confirmed': { label: 'Facture prête', color: 'success' },
+  'einvoice.rejected': { label: 'Facture rejetée', color: 'error' },
+  'einvoice.stuck': { label: 'Factures en attente', color: 'error' },
+  'emecef.token-expiring': { label: 'Jeton e-MECeF', color: 'warning' },
+  'emecef.queue-paused': { label: 'Envoi suspendu', color: 'error' },
+  'einvoice.daily-report': {
+    label: 'Factures du jour',
+    color: 'default',
+  },
 };
 
 export const NOTIFICATION_TYPE_OPTIONS = Object.entries(NOTIFICATION_TYPES).map(

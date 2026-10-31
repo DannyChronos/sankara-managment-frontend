@@ -1,4 +1,7 @@
-import { Form, Input, Modal } from 'antd';
+import { useState } from 'react';
+import { Form, Input, Modal, Radio } from 'antd';
+import { IfuInput } from '../../../shared/components';
+import { optionalIfuRule } from '../../../shared/utils/ifu';
 import type { CustomerPayload } from '../api';
 import type { Customer } from '../../../shared/api/types';
 
@@ -24,6 +27,13 @@ export function CustomerForm({
   onSubmit,
 }: Props) {
   const [form] = Form.useForm<CustomerPayload>();
+  // Un client entreprise porte une raison sociale et un IFU : ce sont eux qui
+  // figurent sur la facture normalisée, pas le nom de la personne venue au
+  // comptoir. Le type n'est pas enregistré : il n'est qu'un aiguillage de
+  // saisie, l'IFU suffit à distinguer les deux.
+  const [kind, setKind] = useState<'person' | 'company'>(
+    customer?.ifu || customer?.companyName ? 'company' : 'person',
+  );
 
   return (
     <Modal
@@ -50,8 +60,13 @@ export function CustomerForm({
       }}
       afterOpenChange={(opened) => {
         if (opened) {
+          setKind(
+            customer?.ifu || customer?.companyName ? 'company' : 'person',
+          );
           form.setFieldsValue({
             fullName: customer?.fullName ?? '',
+            companyName: customer?.companyName ?? '',
+            ifu: customer?.ifu ?? '',
             phone: customer?.phone ?? '',
             email: customer?.email ?? '',
             address: customer?.address ?? '',
@@ -62,6 +77,42 @@ export function CustomerForm({
       }}
     >
       <Form form={form} layout="vertical">
+        <Form.Item label="Type de client">
+          <Radio.Group
+            value={kind}
+            onChange={(event) => {
+              const next = event.target.value as 'person' | 'company';
+              setKind(next);
+              // Ant Design conserve la valeur d'un champ démonté : sans ce
+              // nettoyage, repasser en « particulier » laisserait partir la
+              // raison sociale et l'IFU saisis juste avant.
+              if (next === 'person') {
+                form.setFieldsValue({ companyName: '', ifu: '' });
+              }
+            }}
+            options={[
+              { value: 'person', label: 'Particulier' },
+              { value: 'company', label: 'Entreprise' },
+            ]}
+          />
+        </Form.Item>
+
+        {kind === 'company' && (
+          <>
+            <Form.Item
+              name="companyName"
+              label="Raison sociale"
+              extra="S’imprime sur la facture normalisée."
+            >
+              <Input maxLength={160} placeholder="SARL Hôtel du Lac" />
+            </Form.Item>
+
+            <Form.Item name="ifu" label="IFU" rules={[optionalIfuRule]}>
+              <IfuInput />
+            </Form.Item>
+          </>
+        )}
+
         <Form.Item
           name="fullName"
           label="Nom complet"

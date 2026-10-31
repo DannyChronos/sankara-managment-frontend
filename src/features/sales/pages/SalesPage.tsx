@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, DatePicker, Flex, Statistic, Table, Typography } from 'antd';
+import {
+  Card,
+  DatePicker,
+  Flex,
+  Select,
+  Statistic,
+  Table,
+  Typography,
+} from 'antd';
 import type { Dayjs } from 'dayjs';
 import {
+  EinvoiceStatusTag,
   ErrorState,
   Money,
   PageHeader,
@@ -11,9 +20,11 @@ import {
 import { useAuth } from '../../../shared/auth/useAuth';
 import { usePermission } from '../../../shared/auth/usePermission';
 import { formatDateTime } from '../../../shared/utils/format';
+import { einvoiceStatusLabel } from '../../../shared/constants/labels';
+import { usePosFiscalContext } from '../../fiscal/hooks';
 import { useSales } from '../hooks';
 import { OrderStatusTag } from '../components/OrderStatusTag';
-import type { Order } from '../../../shared/api/types';
+import type { EinvoiceStatus, Order } from '../../../shared/api/types';
 
 /**
  * Historique des ventes. Le backend filtre déjà sur le caissier quand
@@ -26,11 +37,17 @@ export function SalesPage() {
   const seesAll = can('cash-sessions:read-all');
   const [range, setRange] = useState<[Dayjs, Dayjs] | null>(null);
   const [page, setPage] = useState(1);
+  const [einvoiceStatus, setEinvoiceStatus] = useState<EinvoiceStatus>();
+
+  // La colonne « Facture » n'a de sens que si la facturation est en service.
+  const fiscal = usePosFiscalContext();
+  const invoicing = (fiscal.data?.invoiceMode ?? 'DISABLED') !== 'DISABLED';
 
   const sales = useSales({
     page,
     limit: 20,
     ...(siteId ? { siteId } : {}),
+    ...(einvoiceStatus ? { einvoiceStatus } : {}),
     ...(range
       ? {
           from: range[0].format('YYYY-MM-DD'),
@@ -69,6 +86,24 @@ export function SalesPage() {
             }}
             allowClear
           />
+          {invoicing && (
+            <Select
+              allowClear
+              style={{ width: 210 }}
+              placeholder="Facture"
+              value={einvoiceStatus}
+              onChange={(value?: EinvoiceStatus) => {
+                setEinvoiceStatus(value);
+                setPage(1);
+              }}
+              options={(
+                Object.keys(einvoiceStatusLabel) as EinvoiceStatus[]
+              ).map((value) => ({
+                value,
+                label: einvoiceStatusLabel[value],
+              }))}
+            />
+          )}
           <Statistic
             title={`Net encaissé sur cette page (${sales.data.data.length} vente(s))`}
             valueRender={() => <Money value={pageRevenue} strong />}
@@ -148,6 +183,18 @@ export function SalesPage() {
               width: 160,
               render: (value: string) => <OrderStatusTag status={value} />,
             },
+            ...(invoicing
+              ? [
+                  {
+                    title: 'Facture',
+                    dataIndex: 'einvoiceStatus',
+                    width: 190,
+                    render: (value: EinvoiceStatus) => (
+                      <EinvoiceStatusTag status={value} />
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       </Card>

@@ -45,6 +45,28 @@ const messages: Record<string, string> = {
   IDEMPOTENCY_CONFLICT: 'Cette opération a déjà été enregistrée.',
   INVALID_STATE_TRANSITION: 'Cette action n’est pas possible à ce stade.',
   RATE_LIMITED: 'Trop de tentatives. Patientez un instant.',
+
+  // Facture normalisée e-MECeF (FRONTEND-FACTURE §12).
+  FISCAL_PROFILE_REQUIRED:
+    'Complétez d’abord le profil fiscal (Paramètres › Fiscalité).',
+  EMECEF_TOKEN_REQUIRED:
+    'Enregistrez et testez le jeton e-MECeF avant d’activer la facture normalisée.',
+  EMECEF_TOKEN_INVALID:
+    'La DGI a refusé ce jeton. Vérifiez-le ou générez-en un nouveau.',
+  EMECEF_IFU_MISMATCH:
+    'Ce jeton appartient à un autre IFU que celui du profil fiscal.',
+  EMECEF_UNAVAILABLE: 'La DGI ne répond pas. Réessayez dans quelques minutes.',
+  LEGAL_WARNING_NOT_ACKNOWLEDGED:
+    'Cochez la case de confirmation pour choisir ce mode.',
+  EINVOICE_PENDING:
+    'La facture normalisée de cette vente est en cours de traitement. Réessayez dans quelques minutes.',
+  EINVOICE_ALREADY_EXISTS: 'Cette vente a déjà une facture normalisée.',
+  SALE_NOT_TODAY:
+    'La facture normalisée ne peut être émise après coup que le jour de la vente.',
+  EINVOICE_NOT_RETRYABLE: 'Cette facture ne peut pas être relancée.',
+  IFU_INVALID: 'L’IFU doit compter 13 chiffres.',
+  ENVIRONMENT_LOCKED:
+    'Des factures réelles ont été émises : le retour en mode test n’est plus possible.',
   INTERNAL_ERROR: 'Une erreur est survenue. Réessayez dans un instant.',
 };
 

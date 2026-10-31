@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { OfflineBanner } from '../shared/components';
+import { OfflineBanner, TestModeBanner } from '../shared/components';
 
 /** Plein écran, sans menu : la caisse doit rester la plus rapide possible. */
 export function PosLayout() {
@@ -13,6 +13,7 @@ export function PosLayout() {
       }}
     >
       <OfflineBanner />
+      <TestModeBanner />
       <Outlet />
     </div>
   );

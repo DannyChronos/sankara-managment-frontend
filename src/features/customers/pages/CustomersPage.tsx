@@ -54,7 +54,7 @@ export function CustomersPage() {
             allowClear
             // Le téléphone est ce qu'on a sous la main quand un client
             // rappelle : la recherche serveur couvre aussi nom et email.
-            placeholder="Téléphone, nom ou email"
+            placeholder="Téléphone, nom, email ou IFU"
             style={{ maxWidth: 340 }}
             value={q}
             onChange={(event) => {
@@ -80,8 +80,21 @@ export function CustomersPage() {
               title: 'Nom',
               dataIndex: 'fullName',
               render: (value: string, row) => (
-                <Link to={`/customers/${row.id}`}>{value}</Link>
+                <>
+                  <Link to={`/customers/${row.id}`}>{value}</Link>
+                  {row.companyName && (
+                    <div style={{ fontSize: 12, color: '#8a98a8' }}>
+                      {row.companyName}
+                    </div>
+                  )}
+                </>
               ),
+            },
+            {
+              title: 'IFU',
+              dataIndex: 'ifu',
+              width: 160,
+              render: (value: string | null) => value ?? '—',
             },
             {
               title: 'Téléphone',

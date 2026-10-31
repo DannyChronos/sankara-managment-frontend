@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { Order, VariantSearchResult } from '../../../shared/api/types';
+import type {
+  EinvoiceBuyer,
+  Order,
+  VariantSearchResult,
+} from '../../../shared/api/types';
 
 export interface CartLine {
   variantId: string;
@@ -17,6 +21,14 @@ interface CartState {
   lines: CartLine[];
   customerId: string | null;
   customerLabel: string | null;
+  /**
+   * Mode « à la demande » : le client réclame une facture normalisée. Revient
+   * à faux après chaque vente — une facture demandée ne se reporte pas sur le
+   * client suivant.
+   */
+  invoiceRequested: boolean;
+  /** Acheteur de la facture ; tout est facultatif (§6.2). */
+  buyer: EinvoiceBuyer;
   /** Générée une fois par tentative de vente, réutilisée en cas de relance. */
   idempotencyKey: string | null;
   /**
@@ -30,7 +42,13 @@ interface CartState {
   setQuantity: (variantId: string, quantity: number) => void;
   setDiscount: (variantId: string, discount: number) => void;
   remove: (variantId: string) => void;
-  setCustomer: (id: string | null, label: string | null) => void;
+  setCustomer: (
+    id: string | null,
+    label: string | null,
+    buyer?: EinvoiceBuyer,
+  ) => void;
+  setInvoiceRequested: (requested: boolean) => void;
+  setBuyer: (buyer: EinvoiceBuyer) => void;
   setLastSale: (order: Order | null) => void;
   startAttempt: () => string;
   clear: () => void;
@@ -47,6 +65,8 @@ export const useCartStore = create<CartState>()(
       lines: [],
       customerId: null,
       customerLabel: null,
+      invoiceRequested: false,
+      buyer: {},
       idempotencyKey: null,
       lastSale: null,
 
@@ -112,8 +132,23 @@ export const useCartStore = create<CartState>()(
           idempotencyKey: null,
         })),
 
-      setCustomer: (customerId, customerLabel) =>
-        set({ customerId, customerLabel, idempotencyKey: null }),
+      /**
+       * Choisir un client entreprise préremplit l'acheteur : sa raison
+       * sociale et son IFU sont déjà connus, le caissier n'a pas à les
+       * ressaisir. Ils restent modifiables pour cette vente.
+       */
+      setCustomer: (customerId, customerLabel, buyer) =>
+        set((state) => ({
+          customerId,
+          customerLabel,
+          buyer: buyer ?? (customerId === null ? {} : state.buyer),
+          idempotencyKey: null,
+        })),
+
+      setInvoiceRequested: (invoiceRequested) =>
+        set({ invoiceRequested, idempotencyKey: null }),
+
+      setBuyer: (buyer) => set({ buyer, idempotencyKey: null }),
 
       setLastSale: (lastSale) => set({ lastSale }),
 
@@ -136,6 +171,8 @@ export const useCartStore = create<CartState>()(
           lines: [],
           customerId: null,
           customerLabel: null,
+          invoiceRequested: false,
+          buyer: {},
           idempotencyKey: null,
         }),
     }),

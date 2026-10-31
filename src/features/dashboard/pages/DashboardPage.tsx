@@ -12,6 +12,7 @@ import { useAuth } from '../../../shared/auth/useAuth';
 import { usePermission } from '../../../shared/auth/usePermission';
 import { formatXof } from '../../../shared/utils/format';
 import { useDashboard } from '../hooks';
+import { useEinvoiceDailySummary } from '../../einvoices/hooks';
 import { StatCard } from '../components/StatCard';
 
 type Period = 'day' | 'week' | 'month';
@@ -28,6 +29,9 @@ export function DashboardPage() {
   const { can } = usePermission();
   const navigate = useNavigate();
   const { data, isPending, isError, error, refetch } = useDashboard(period);
+  // Réservée aux administrateurs : le caissier voit le statut de ses ventes,
+  // pas le compte de la journée (§10).
+  const einvoices = useEinvoiceDailySummary(can('einvoice:read'));
 
   if (isPending) return <PageSkeleton />;
   if (isError)
@@ -104,6 +108,22 @@ export function DashboardPage() {
             }
           />
         </Col>
+        {einvoices.data && einvoices.data.total > 0 && (
+          <Col xs={24} sm={12} xl={6}>
+            <StatCard
+              title="Factures du jour"
+              value={einvoices.data.confirmed}
+              danger={einvoices.data.rejected > 0}
+              hint={
+                einvoices.data.rejected + einvoices.data.pending > 0
+                  ? `${einvoices.data.pending} en cours · ${einvoices.data.rejected} rejetée(s)`
+                  : `Toutes normalisées · ${formatXof(einvoices.data.confirmedTotal)}`
+              }
+              to="/einvoices"
+              linkLabel="Journal des factures"
+            />
+          </Col>
+        )}
         <Col xs={24} sm={12} xl={6}>
           <StatCard
             title="Articles sous le seuil"

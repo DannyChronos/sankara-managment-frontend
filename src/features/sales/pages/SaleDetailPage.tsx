@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -10,8 +11,10 @@ import {
   Modal,
   Table,
   Tag,
+  Tooltip,
 } from 'antd';
 import {
+  EinvoiceStatusTag,
   ErrorState,
   Money,
   PageHeader,
@@ -24,9 +27,20 @@ import { paymentMethodLabel } from '../../../shared/constants/labels';
 import { formatDateTime } from '../../../shared/utils/format';
 import { cashSessionsApi } from '../../cash-sessions/api';
 import { receiptPath } from '../api';
-import { useCancelSale, useCreateReturn, useSale } from '../hooks';
+import {
+  useCancelSale,
+  useCreateReturn,
+  useNormalizeLate,
+  useSale,
+  useSaleEinvoice,
+} from '../hooks';
+import { useRetryEinvoice } from '../../einvoices/hooks';
+import { usePosFiscalContext } from '../../fiscal/hooks';
 import { OrderStatusTag } from '../components/OrderStatusTag';
 import { ReturnModal } from '../components/ReturnModal';
+import { SaleEinvoiceCard } from '../components/SaleEinvoiceCard';
+import { NormalizeLateModal } from '../components/NormalizeLateModal';
+import { formatXof } from '../../../shared/utils/format';
 import type { OrderLine, OrderPayment } from '../../../shared/api/types';
 
 export function SaleDetailPage() {
@@ -35,10 +49,18 @@ export function SaleDetailPage() {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [returnOpen, setReturnOpen] = useState(false);
+  const [normalizeOpen, setNormalizeOpen] = useState(false);
 
   const sale = useSale(id);
   const cancel = useCancelSale();
   const createReturn = useCreateReturn();
+  const normalizeLate = useNormalizeLate();
+  const retry = useRetryEinvoice();
+
+  const fiscal = usePosFiscalContext();
+  // Le bloc facture s'affiche dès qu'une facture existe, même si la
+  // facturation a été désactivée depuis : une vente ancienne garde la sienne.
+  const einvoice = useSaleEinvoice(id, false);
 
   const sessionId = sale.data?.cashSessionId ?? null;
   // RG-14 : une vente ne s'annule que tant que sa session est ouverte. On lit
@@ -67,6 +89,33 @@ export function SaleDetailPage() {
     (line) => line.quantity - line.returnedQty > 0,
   );
 
+  const einvoiceStatus = einvoice.data?.status ?? data.einvoiceStatus;
+  // Annuler ou retourner pendant qu'une facture est en vol produirait un
+  // avoir qui référencerait un code MECeF encore inexistant : le serveur le
+  // refuse (EINVOICE_PENDING), autant le dire avant le clic.
+  const invoiceInFlight = einvoiceStatus === 'PENDING';
+  const showEinvoice =
+    einvoiceStatus !== 'NOT_REQUESTED' ||
+    (fiscal.data?.invoiceMode ?? 'DISABLED') !== 'DISABLED';
+  const sameDay =
+    new Date(data.createdAt).toDateString() === new Date().toDateString();
+  // Ce que l'avoir portera : le total encore encaissé sur la vente.
+  const creditNoteAmount = data.total - data.refundedTotal;
+  const creditNoteWarning =
+    einvoiceStatus === 'CONFIRMED'
+      ? `Une facture d’avoir normalisée de ${formatXof(creditNoteAmount)} sera émise.`
+      : undefined;
+
+  /** Le bouton existe mais l'action est impossible : dire pourquoi. */
+  const guarded = (node: ReactNode) =>
+    invoiceInFlight ? (
+      <Tooltip title="Facture en cours de traitement, réessayez dans quelques minutes.">
+        <span>{node}</span>
+      </Tooltip>
+    ) : (
+      node
+    );
+
   return (
     <>
       <PageHeader
@@ -85,16 +134,37 @@ export function SaleDetailPage() {
             >
               Réimprimer le ticket
             </PdfButton>
+            {einvoiceStatus === 'CONFIRMED' && (
+              <PdfButton
+                path={`${receiptPath(data.id)}?format=a4`}
+                fileName={`${data.number}-A4.pdf`}
+              >
+                Facture A4
+              </PdfButton>
+            )}
             {!cancelled && returnable && (
               <PermissionGate perm="sales:return">
-                <Button onClick={() => setReturnOpen(true)}>Retour</Button>
+                {guarded(
+                  <Button
+                    disabled={invoiceInFlight}
+                    onClick={() => setReturnOpen(true)}
+                  >
+                    Retour
+                  </Button>,
+                )}
               </PermissionGate>
             )}
             {!cancelled && sessionOpen && (
               <PermissionGate perm="sales:cancel">
-                <Button danger onClick={() => setCancelOpen(true)}>
-                  Annuler la vente
-                </Button>
+                {guarded(
+                  <Button
+                    danger
+                    disabled={invoiceInFlight}
+                    onClick={() => setCancelOpen(true)}
+                  >
+                    Annuler la vente
+                  </Button>,
+                )}
               </PermissionGate>
             )}
           </>
@@ -135,6 +205,15 @@ export function SaleDetailPage() {
               label: 'Caissier',
               children: data.cashier?.fullName ?? '—',
             },
+            ...(showEinvoice
+              ? [
+                  {
+                    key: 'einvoice',
+                    label: 'Facture',
+                    children: <EinvoiceStatusTag status={einvoiceStatus} />,
+                  },
+                ]
+              : []),
             {
               key: 'customer',
               label: 'Client',
@@ -295,10 +374,44 @@ export function SaleDetailPage() {
         />
       </Card>
 
+      {showEinvoice && (
+        <SaleEinvoiceCard
+          sale={data}
+          einvoice={einvoice.data}
+          loading={einvoice.isPending}
+          sameDay={sameDay}
+          retrying={retry.isPending}
+          onNormalizeLate={() => setNormalizeOpen(true)}
+          onRetry={(invoiceId) => retry.mutate(invoiceId)}
+        />
+      )}
+
+      <NormalizeLateModal
+        open={normalizeOpen}
+        saleNumber={data.number}
+        pending={normalizeLate.isPending}
+        defaultBuyer={
+          data.buyer
+            ? {
+                ...(data.buyer.name ? { name: data.buyer.name } : {}),
+                ...(data.buyer.ifu ? { ifu: data.buyer.ifu } : {}),
+              }
+            : undefined
+        }
+        onCancel={() => setNormalizeOpen(false)}
+        onSubmit={(buyer) =>
+          normalizeLate.mutate(
+            { id: data.id, buyer },
+            { onSuccess: () => setNormalizeOpen(false) },
+          )
+        }
+      />
+
       {returnOpen && (
         <ReturnModal
           key={data.id + data.refundedTotal}
           order={data}
+          normalized={einvoiceStatus === 'CONFIRMED'}
           open
           pending={createReturn.isPending}
           onCancel={() => setReturnOpen(false)}
@@ -334,7 +447,13 @@ export function SaleDetailPage() {
           showIcon
           style={{ marginBottom: 16 }}
           message="Le stock revient et l’argent ressort de la caisse"
-          description="L’annulation est tracée : elle ne supprime rien, elle écrit les contre-écritures."
+          description={
+            <>
+              L’annulation est tracée : elle ne supprime rien, elle écrit les
+              contre-écritures.
+              {creditNoteWarning && <> {creditNoteWarning}</>}
+            </>
+          }
         />
         <Input.TextArea
           rows={3}

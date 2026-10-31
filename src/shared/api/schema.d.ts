@@ -1228,10 +1228,53 @@ export interface paths {
       path?: never;
       cookie?: never;
     };
-    /** Ticket de caisse 80 mm */
+    /**
+     * Ticket 80 mm ou facture A4
+     * @description Le document produit dépend de l’état de la facture normalisée : reçu de vente, reçu provisoire ou facture normalisée avec ses éléments de sécurité. Rien n’est recalculé : une réimpression reproduit l’enregistrement.
+     */
     get: operations['SalesController_receipt'];
     put?: never;
     post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/sales/{id}/einvoice': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * État de la facture normalisée d’une vente
+     * @description Interrogé par la caisse après l’encaissement, le temps que la DGI réponde.
+     */
+    get: operations['SalesController_einvoice'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/sales/{id}/normalize': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Émet la facture normalisée après la vente
+     * @description Le jour de la vente seulement : un client qui revient réclamer sa facture. L’opérateur imprimé reste le caissier de la vente.
+     */
+    post: operations['SalesController_normalize'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1272,6 +1315,221 @@ export interface paths {
      * @description Le remboursement est porté par la session ouverte courante du caissier, pas par celle de la vente d’origine.
      */
     post: operations['SalesController_createReturn'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/profile': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Profil fiscal de l’entreprise */
+    get: operations['FiscalController_profile'];
+    /**
+     * Enregistre le profil fiscal
+     * @description Ces informations s’impriment sur chaque facture normalisée : elles doivent correspondre exactement à celles de la DGI.
+     */
+    put: operations['FiscalController_updateProfile'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/emecef-token': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Enregistre et teste le jeton e-MECeF
+     * @description Le jeton est chiffré en base puis vérifié auprès de la DGI. Un jeton émis pour un autre IFU est refusé.
+     */
+    put: operations['FiscalController_setToken'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/emecef-token/test': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Rejoue le test du jeton
+     * @description Reprend la file des factures si elle avait été suspendue.
+     */
+    post: operations['FiscalController_testToken'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/invoice-mode': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Choisit le mode de facturation
+     * @description Le mode « à la demande » exige la confirmation de l’avertissement légal : selon la DGI, toute vente d’un assujetti doit donner lieu à une facture normalisée.
+     */
+    put: operations['FiscalController_setInvoiceMode'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/environment': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /**
+     * Bascule entre test et production
+     * @description Une facture de test n’a aucune valeur fiscale. Le retour en test est interdit dès qu’une facture de production a été confirmée.
+     */
+    put: operations['FiscalController_setEnvironment'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/pos-context': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Mode de facturation, pour l’écran de caisse
+     * @description Volontairement réduit : ni IFU, ni NIM, ni jeton. Seul le comportement attendu de la caisse.
+     */
+    get: operations['FiscalController_posContext'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/fiscal/emecef-status': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * État du service e-MCF
+     * @description Service joignable, validité du jeton, factures en attente chez la DGI et dans la file locale.
+     */
+    get: operations['FiscalController_liveStatus'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/einvoices': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Journal des factures normalisées et des avoirs */
+    get: operations['EinvoicesController_list'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/einvoices/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Détail d’une facture normalisée */
+    get: operations['EinvoicesController_get'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/einvoices/{id}/attempts': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Chronologie des appels à la DGI
+     * @description Étape, durée, code HTTP, code d’erreur et réponse brute : de quoi diagnostiquer un refus sans deviner.
+     */
+    get: operations['EinvoicesController_attemptsOf'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/v1/einvoices/{id}/retry': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Relance une facture rejetée
+     * @description Une nouvelle facture reprend le corps figé de la précédente ; la facture refusée reste au journal.
+     */
+    post: operations['EinvoicesController_retry'];
     delete?: never;
     options?: never;
     head?: never;
@@ -1633,8 +1891,8 @@ export interface components {
     CurrentUserDto: {
       id: string;
       fullName: string;
-      email: string | null;
-      phone: string;
+      email: string;
+      phone: string | null;
       /** @example CASHIER */
       roleCode: string;
       /** @example Caissier */
@@ -1702,17 +1960,21 @@ export interface components {
       lastName: string;
       /**
        * Format: email
+       * @description Canal principal : l’activation et la réinitialisation y partent
        * @example awa@matelas-sankara.bj
        */
-      email?: string;
-      /** @example +22997000011 */
-      phone: string;
+      email: string;
+      /**
+       * @description Secours SMS
+       * @example +22997000011
+       */
+      phone?: string;
       /**
        * Format: uuid
        * @description Identifiant du rôle (voir /rbac/roles)
        */
       roleId: string;
-      /** @description Laissé vide, un mot de passe provisoire est généré et renvoyé une seule fois */
+      /** @description Laissé vide, un code d’activation part par email : l’utilisateur choisit lui-même son mot de passe */
       password?: string;
       /** @description Sites auxquels rattacher l’utilisateur */
       siteIds?: string[];
@@ -1838,6 +2100,11 @@ export interface components {
        * @default false
        */
       isPublishedOnline: boolean;
+      /**
+       * @description Groupe de taxation imprimé sur la facture normalisée : A exonéré, B taxable (TVA 18 %), E régime TPS.
+       * @enum {string}
+       */
+      taxGroup?: 'A' | 'B' | 'E';
     };
     UpdateProductDto: {
       name?: string;
@@ -1848,6 +2115,11 @@ export interface components {
       warrantyMonths?: number;
       isActive?: boolean;
       isPublishedOnline?: boolean;
+      /**
+       * @description Groupe de taxation imprimé sur la facture normalisée : A exonéré, B taxable (TVA 18 %), E régime TPS.
+       * @enum {string}
+       */
+      taxGroup?: 'A' | 'B' | 'E';
     };
     CreateVariantDto: {
       /**
@@ -2087,6 +2359,16 @@ export interface components {
       /** @example Cotonou */
       city?: string;
       notes?: string;
+      /**
+       * @description Acheteur entreprise : raison sociale reportée sur la facture normalisée
+       * @example SARL Hôtel du Lac
+       */
+      companyName?: string;
+      /**
+       * @description 13 chiffres
+       * @example 3201900000001
+       */
+      ifu?: string;
     };
     UpdateCustomerDto: {
       fullName?: string;
@@ -2096,6 +2378,16 @@ export interface components {
       address?: string;
       city?: string;
       notes?: string;
+      /**
+       * @description Acheteur entreprise : raison sociale reportée sur la facture normalisée
+       * @example SARL Hôtel du Lac
+       */
+      companyName?: string;
+      /**
+       * @description 13 chiffres
+       * @example 3201900000001
+       */
+      ifu?: string;
     };
     OpenSessionDto: {
       /**
@@ -2176,6 +2468,19 @@ export interface components {
       /** @description Obligatoire hors espèces : référence de la transaction */
       reference?: string;
     };
+    BuyerDto: {
+      /** @example SARL Hôtel du Lac */
+      name?: string;
+      /**
+       * @description 13 chiffres
+       * @example 3201900000001
+       */
+      ifu?: string;
+      /** @example +22901970000 */
+      contact?: string;
+      /** @example Cotonou */
+      address?: string;
+    };
     CreatePosSaleDto: {
       lines: components['schemas']['SaleLineDto'][];
       payments: components['schemas']['SalePaymentDto'][];
@@ -2187,6 +2492,13 @@ export interface components {
        */
       discountApprovedById?: string;
       note?: string;
+      /** @description Mode « à la demande » : le client réclame une facture normalisée. Ignoré en mode systématique, où toute vente en produit une. */
+      normalizedInvoice?: boolean;
+      /** @description Acheteur de la facture normalisée — tout est facultatif */
+      buyer?: components['schemas']['BuyerDto'];
+    };
+    NormalizeLateDto: {
+      buyer?: components['schemas']['BuyerDto'];
     };
     CancelSaleDto: {
       /** @example Erreur de saisie */
@@ -2221,6 +2533,62 @@ export interface components {
         | 'CARD'
         | 'BANK_TRANSFER'
         | 'ONLINE';
+    };
+    UpdateFiscalProfileDto: {
+      /** @example MATELAS SANKARA SARL */
+      legalName: string;
+      /** @example Matelas Sankara */
+      tradeName?: string;
+      /**
+       * @description 13 chiffres
+       * @example 3201912345678
+       */
+      ifu: string;
+      /** @example RB/COT/24 B 1234 */
+      rccm?: string;
+      /** @example Cotonou, Carrefour Toyota */
+      fiscalAddress: string;
+      /** @example +22901970000 */
+      fiscalPhone: string;
+      /**
+       * Format: email
+       * @example compta@matelas-sankara.bj
+       */
+      fiscalEmail?: string;
+      /**
+       * @example VAT
+       * @enum {string}
+       */
+      taxRegime: 'VAT' | 'TPS';
+      /** @description Mention libre en pied de ticket */
+      receiptFooter?: string;
+      /** @description Basculer les produits de l’ancien groupe de taxation vers celui du nouveau régime */
+      switchProductTaxGroups?: boolean;
+    };
+    SetEmecefTokenDto: {
+      /** @description Jeton JWT délivré par la DGI pour l’IFU */
+      token: string;
+      /**
+       * @default TEST
+       * @enum {string}
+       */
+      env: 'TEST' | 'PROD';
+    };
+    SetInvoiceModeDto: {
+      /** @enum {string} */
+      mode: 'DISABLED' | 'ALWAYS' | 'ON_DEMAND';
+      /** @description Obligatoire pour le mode « à la demande » : confirme l’avertissement légal */
+      acknowledgeLegalWarning?: boolean;
+    };
+    SetEnvironmentDto: {
+      /** @enum {string} */
+      env: 'TEST' | 'PROD';
+      /**
+       * @description Saisir « PRODUCTION » pour confirmer la bascule vers la production
+       * @example PRODUCTION
+       * @enum {string}
+       */
+      confirm?: 'PRODUCTION';
     };
     CreateExportDto: {
       /** @example 2026-10-01 */
@@ -2542,7 +2910,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': Record<string, never>[];
+        };
       };
       /** @description Jeton absent, invalide ou expiré */
       401: {
@@ -2580,7 +2950,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': Record<string, never>;
+        };
       };
       /** @description Jeton absent, invalide ou expiré */
       401: {
@@ -2616,7 +2988,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': Record<string, never>;
+        };
       };
       /** @description Jeton absent, invalide ou expiré */
       401: {
@@ -2692,7 +3066,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': Record<string, never>;
+        };
       };
       /** @description Jeton absent, invalide ou expiré */
       401: {
@@ -2732,7 +3108,9 @@ export interface operations {
         headers: {
           [name: string]: unknown;
         };
-        content?: never;
+        content: {
+          'application/json': Record<string, never>;
+        };
       };
       /** @description Jeton absent, invalide ou expiré */
       401: {
@@ -3373,6 +3751,7 @@ export interface operations {
         categoryId?: string;
         isActive?: boolean;
         isPublishedOnline?: boolean;
+        taxGroup?: 'A' | 'B' | 'E';
         page?: number;
         limit?: number;
       };
@@ -4274,6 +4653,8 @@ export interface operations {
     parameters: {
       query?: {
         siteId?: string;
+        /** @description Réceptions d’un fournisseur donné */
+        supplierId?: string;
         type?:
           | 'PRODUCTION_ENTRY'
           | 'PURCHASE_RECEIPT'
@@ -5084,7 +5465,7 @@ export interface operations {
   CustomersController_list: {
     parameters: {
       query?: {
-        /** @description Nom, téléphone ou email */
+        /** @description Nom, téléphone, email ou IFU */
         q?: string;
         page?: number;
         limit?: number;
@@ -5697,6 +6078,8 @@ export interface operations {
         sessionId?: string;
         cashierId?: string;
         customerId?: string;
+        /** @description Filtre sur le statut de la facture normalisée */
+        einvoiceStatus?: 'NOT_REQUESTED' | 'PENDING' | 'CONFIRMED' | 'REJECTED';
         from?: string;
         to?: string;
         page?: number;
@@ -5811,6 +6194,45 @@ export interface operations {
   };
   SalesController_receipt: {
     parameters: {
+      query?: {
+        /** @description A4 pour un acheteur entreprise qui demande une facture papier (§11.2). */
+        format?: '80mm' | 'a4';
+      };
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SalesController_einvoice: {
+    parameters: {
       query?: never;
       header?: {
         /** @description Site courant — requis sur les routes liées à un site. */
@@ -5824,6 +6246,46 @@ export interface operations {
     requestBody?: never;
     responses: {
       200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  SalesController_normalize: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NormalizeLateDto'];
+      };
+    };
+    responses: {
+      201: {
         headers: {
           [name: string]: unknown;
         };
@@ -5902,6 +6364,457 @@ export interface operations {
         'application/json': components['schemas']['CreateReturnDto'];
       };
     };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_profile: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_updateProfile: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['UpdateFiscalProfileDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_setToken: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetEmecefTokenDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_testToken: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_setInvoiceMode: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetInvoiceModeDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_setEnvironment: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetEnvironmentDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_posContext: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  FiscalController_liveStatus: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  EinvoicesController_list: {
+    parameters: {
+      query?: {
+        status?: 'PENDING' | 'SUBMITTED' | 'CONFIRMED' | 'REJECTED' | 'EXPIRED';
+        kind?: 'SALE' | 'CREDIT_NOTE';
+        env?: 'TEST' | 'PROD';
+        siteId?: string;
+        from?: string;
+        to?: string;
+        /** @description Numéro de vente, code MECeF ou IFU de l’acheteur */
+        q?: string;
+        page?: number;
+        limit?: number;
+      };
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  EinvoicesController_get: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  EinvoicesController_attemptsOf: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Jeton absent, invalide ou expiré */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Permissions insuffisantes */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  EinvoicesController_retry: {
+    parameters: {
+      query?: never;
+      header?: {
+        /** @description Site courant — requis sur les routes liées à un site. */
+        'X-Site-Id'?: string;
+      };
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
     responses: {
       201: {
         headers: {

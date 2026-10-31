@@ -1,4 +1,7 @@
-import { Form, Input, InputNumber, Modal, Select, Switch } from 'antd';
+import { Form, Input, InputNumber, Modal, Select, Switch, Tooltip } from 'antd';
+import { TaxGroupSelect } from '../../../shared/components';
+import { defaultTaxGroup } from '../../../shared/constants/labels';
+import { useFiscalProfile } from '../../fiscal/hooks';
 import { useCategories } from '../hooks';
 import type { ProductPayload } from '../api';
 import type { ProductDetail } from '../../../shared/api/types';
@@ -25,6 +28,13 @@ export function ProductForm({
 }: Props) {
   const [form] = Form.useForm<ProductPayload>();
   const categories = useCategories({ isActive: true });
+  // Le groupe par défaut suit le régime de l'entreprise : TVA → B, TPS → E.
+  // Le profil n'est lisible que par un super administrateur ; pour les
+  // autres, on laisse le serveur appliquer sa valeur par défaut.
+  const fiscal = useFiscalProfile();
+  const suggested = fiscal.data
+    ? defaultTaxGroup[fiscal.data.taxRegime]
+    : undefined;
 
   return (
     <Modal
@@ -56,6 +66,7 @@ export function ProductForm({
             categoryId: product?.category.id,
             description: product?.description ?? '',
             brand: product?.brand ?? 'Matelas Sankara',
+            taxGroup: product?.taxGroup ?? suggested,
             warrantyMonths: product?.warrantyMonths ?? undefined,
             isPublishedOnline: product?.isPublishedOnline ?? false,
             ...(product ? { isActive: product.isActive } : {}),
@@ -93,6 +104,17 @@ export function ProductForm({
 
         <Form.Item name="brand" label="Marque">
           <Input maxLength={80} />
+        </Form.Item>
+
+        <Form.Item
+          name="taxGroup"
+          label={
+            <Tooltip title="Le groupe est imprimé sur la facture normalisée. En cas de doute, demandez au comptable.">
+              Groupe de taxation
+            </Tooltip>
+          }
+        >
+          <TaxGroupSelect style={{ width: 280 }} />
         </Form.Item>
 
         <Form.Item

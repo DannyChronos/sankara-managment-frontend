@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button, Card, Flex, Input, Select, Switch, Table, Tag } from 'antd';
+import {
+  Button,
+  Card,
+  Flex,
+  Input,
+  Select,
+  Switch,
+  Table,
+  Tag,
+  Tooltip,
+} from 'antd';
 import {
   ErrorState,
   Money,
@@ -8,6 +18,7 @@ import {
   PageSkeleton,
   PermissionGate,
 } from '../../../shared/components';
+import { taxGroupLabel } from '../../../shared/constants/labels';
 import { useCategories, useCreateProduct, useProducts } from '../hooks';
 import { ProductForm } from '../components/ProductForm';
 import type { ProductListItem } from '../../../shared/api/types';
@@ -146,6 +157,17 @@ export function ProductsPage() {
                     <Money value={range.min} /> – <Money value={range.max} />
                   </>
                 ),
+            },
+            {
+              title: 'Taxe',
+              dataIndex: 'taxGroup',
+              align: 'center',
+              width: 80,
+              render: (group: ProductListItem['taxGroup']) => (
+                <Tooltip title={taxGroupLabel[group]}>
+                  <Tag>{group}</Tag>
+                </Tooltip>
+              ),
             },
             {
               title: 'Garantie',

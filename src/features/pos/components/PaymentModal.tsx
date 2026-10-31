@@ -23,6 +23,11 @@ interface Props {
   pending: boolean;
   /** Message d'échec réseau : la relance réutilise la même clé. */
   failure: string | null;
+  /**
+   * Rappel de la facture demandée : le caissier voit, au moment d'encaisser,
+   * ce qui sera imprimé. Absent quand la vente ne produit qu'un reçu.
+   */
+  invoiceNotice?: string | null;
   onCancel: () => void;
   onSubmit: (payments: SalePayment[]) => void;
 }
@@ -51,6 +56,7 @@ export function PaymentModal({
   open,
   total,
   pending,
+  invoiceNotice,
   failure,
   onCancel,
   onSubmit,
@@ -129,6 +135,15 @@ export function PaymentModal({
         </Flex>
       }
     >
+      {invoiceNotice && (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message={invoiceNotice}
+        />
+      )}
+
       {failure && (
         <Alert
           type="error"

@@ -8,6 +8,7 @@ import type {
   ProductListItem,
   ProductVariantView,
   StockLevelView,
+  TaxGroup,
 } from '../../shared/api/types';
 
 export interface ProductImagePayload {
@@ -29,6 +30,8 @@ export interface ProductPayload {
   categoryId: string;
   description?: string;
   brand?: string;
+  /** Groupe de taxation imprimé sur la facture normalisée (§B7.3). */
+  taxGroup?: TaxGroup;
   warrantyMonths?: number;
   isPublishedOnline?: boolean;
   isActive?: boolean;
